@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Rename-Item *)",
+      "PowerShell(cd \"C:\\\\Users\\\\George Riley\\\\job-tracker\"; Select-String -Path dashboard.html -Pattern 'job-title|job-loc' | Select-Object -First 20 | ForEach-Object { $_.Line.Trim\\(\\) })",
+      "PowerShell(cd \"C:\\\\Users\\\\George Riley\\\\job-tracker\"; $env:PYTHONIOENCODING=\"utf-8\"; python debug_calian_final.py 2>&1)",
+      "PowerShell(Get-ScheduledTask *)",
+      "PowerShell(Unregister-ScheduledTask *)",
+      "PowerShell(cd \"C:\\\\Users\\\\George Riley\\\\job-tracker\"; $env:PYTHONIOENCODING=\"utf-8\"; python debug_aecon.py 2>&1)"
+    ]
+  }
+}

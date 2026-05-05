@@ -1,0 +1,23 @@
+# Job board tracker — one entry per line
+# Format:         Company Name | URL
+# Custom selector: Company Name | URL | CSS selector
+# Lines starting with # are ignored.
+#
+Calian              | https://corporatecareers.calian.com/search | a.jobTitle-link
+Kinectrics          | https://careers.kinectrics.com/go/View-all-Jobs/2625717/?q=&q2=&alertId=&locationsearch=&title=&date=&location=toronto#searchresults
+OPG                 | https://jobs.opg.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=&geolocation=
+CNL                 | https://tre.tbe.taleo.net/tre01/ats/careers/v2/searchResults?org=CNLLTD&cws=37&act=sort&sortColumn=3&sortOrder=D | h4
+AtkinsRealis        | https://slihrms.wd3.myworkdayjobs.com/en-US/Careers?source=careers_site&locations=3a25a348ed440164d119c2efbf00a25e&locations=04345744d12501b0fb91abc3664028e9&locations=bcf52bf7594c10a2750f3bc208ab67c0&locations=bcf52bf7594c10a2750e86b2037b679c&locations=bcf52bf7594c10a2750e1cc43b2366b1&locations=bcf52bf7594c10a275143bf0237b6e17
+CNSC                | https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&clid=71850&page=joblisting | td a
+Aecon               | https://jobs.aecon.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=&geolocation=&optionsFacetsDD_title=&optionsFacetsDD_state=ON&optionsFacetsDD_department=
+BWXT                | https://careers.bwxt.com/search/?q=&q2=&alertId=&locationsearch=&title=&location=on&date=#searchresults
+NWMO                | https://careers.nwmo.ca/vacancies.html | .content h3
+GE Vernova          | https://careers.gevernova.com/jobs?page_number=2&filter%5Bstate%5D%5B0%5D=Ontario&filter%5Bcountry%5D%5B0%5D=Canada | li h3
+Westinghouse        | https://careers.westinghousenuclear.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=Canada&geolocation=&optionsFacetsDD_country=&optionsFacetsDD_city=&optionsFacetsDD_title=&optionsFacetsDD_brand=&optionsFacetsDD_location=
+AECL                | https://www.aecl.ca/about-aecl/employment-with-aecl/ | a[href*='job']
+Laurentis Energy    | https://laurentisenergy.bamboohr.com/careers | a
+Bruce Power         | https://brucepower.wd3.myworkdayjobs.com/BrucePower/
+Cameco              | https://career17.sapsf.com/career?company=Cameco&career%5fns=job%5flisting%5fsummary&navBarLevel=JOB%5fSEARCH&_s.crb=k170olwRXF8FggkX2yeyhzpNLNnZIT6H3KfUFkYX4UI%3d
+Hatch               | https://jobs.hatch.com/search/?q=&locationsearch=mississauga
+Black & McDonald    | https://black-mcdonald-limited.breezy.hr/?&country=Canada#positions
+WSP                 | https://www.wsp.com/en-ca/careers/job-opportunities?query=nuclear&country=CA | [class*='result'] h2

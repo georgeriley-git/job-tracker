@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuclear Jobs Scraper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #eef2f7;
+      color: #1e293b;
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #0f2044;
+      color: #fff;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(0,0,0,.4);
+    }
+    .header-title { font-size: 1.1rem; font-weight: 700; letter-spacing: .01em; }
+    .header-meta  { font-size: .78rem; color: #94a3b8; }
+
+    /* ── Layout ── */
+    .main { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; }
+
+    /* ── Day section ── */
+    .day { margin-bottom: 36px; }
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #0f2044;
+    }
+    .day-name   { font-size: 1rem; font-weight: 700; color: #0f2044; }
+    .today-pill {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; background: #059669; color: #fff;
+      padding: 2px 7px; border-radius: 4px;
+    }
+    .day-badge {
+      font-size: .72rem; font-weight: 700;
+      background: #2563eb; color: #fff;
+      padding: 2px 9px; border-radius: 20px;
+      margin-left: auto;
+    }
+
+    /* ── Company card ── */
+    .company {
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .company-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .company-name  { font-size: .875rem; font-weight: 600; color: #1e3a8a; }
+    .company-count {
+      font-size: .7rem; font-weight: 600;
+      color: #2563eb; background: #eff6ff;
+      padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Job list ── */
+    .job-list { list-style: none; padding: 4px 0; }
+    .job-list li {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 16px 7px 28px;
+      position: relative;
+      border-bottom: 1px solid #f8fafc;
+    }
+    .job-list li:last-child { border-bottom: none; }
+    .job-list li::before {
+      content: "›";
+      position: absolute;
+      left: 14px;
+      color: #2563eb;
+      font-weight: 700;
+      font-size: 1.05em;
+    }
+    .job-title {
+      font-size: .86rem;
+      color: #374151;
+      flex: 1;
+      min-width: 0;
+    }
+    a.job-title {
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+    a.job-title:hover {
+      text-decoration: underline;
+      color: #1e40af;
+    }
+    .job-loc {
+      font-size: .76rem;
+      color: #64748b;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Scrape-failure warning ── */
+    .scrape-warning {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 4px solid #ea580c;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      font-size: .82rem;
+      color: #7c2d12;
+      line-height: 1.5;
+    }
+    .scrape-warning strong { color: #9f1239; }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 72px 24px; color: #64748b; }
+    .empty h2 {
+      font-size: 1.05rem; font-weight: 600;
+      color: #334155; margin-bottom: 8px;
+    }
+    .empty p { font-size: .875rem; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; padding: 20px; font-size: .73rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <span class="header-title">Nuclear Jobs Scraper</span>
+    <span class="header-meta">Last scraped: 5 May 2026 at 14:52</span>
+  </header>
+  <main class="main">
+    <div class="scrape-warning">
+      <strong>Scraping may have failed:</strong> AECL returned 0 jobs this run but had results last time. Your IP may be blocked — check these portals manually.
+    </div>
+    <section class="day">
+      <div class="day-header">
+        <h2 class="day-name">5 May 2026</h2>
+        <span class="today-pill">today</span>
+        <span class="day-badge">37 new</span>
+      </div>
+      <div class="companies">
+        <div class="company">
+          <div class="company-head"><span class="company-name">AtkinsRealis</span><span class="company-count">9 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAQCMontral455-boul-Ren-Lvesque-Ouest/Directeur-trice--en-automatisation--Instrumentation-et-Contrle---Canada_R-154834?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Director, Automation, Instrumentation and Control (Canada)</a><span class="job-loc">2 Locations</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2251-Speakman-Drive/Intern-Facilities-Coordinator---HVAC_R-153931?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Intern Facilities Coordinator - HVAC</a><span class="job-loc">CA.ON.Mississauga.2251 Speakman Drive</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2251-Speakman-Drive/IT-Support-Technician_R-152016?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">IT Support Technician</a><span class="job-loc">CA.ON.Mississauga.2251 Speakman Drive</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2285-Speakman-Drive/Piping-Stress-Analysis-Engineer_R-142053?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Piping Stress Analysis Engineer</a><span class="job-loc">2 Locations</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Program-Cost-Controller_R-154759?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Program Cost Controller</a><span class="job-loc">CA.ON.Toronto.191 The West Mall</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2251-Speakman-Drive/Senior-Mechanical-PLiM-PLEX-Engineer_R-150541?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Senior Mechanical PLiM/PLEX Engineer</a><span class="job-loc">CA.ON.Mississauga.2251 Speakman Drive</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2251-Speakman-Drive/Senior-PSA--Probabilistic-Safety-Analysis--Analyst_R-131005?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Senior PSA (Probabilistic Safety Analysis) Analyst</a><span class="job-loc">CA.ON.Mississauga.2251 Speakman Drive</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Senior-Signaling-and-Communications-Engineer_R-154740-1?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Senior Signaling and Communications Engineer</a><span class="job-loc">2 Locations</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Structural-BIM-Technician_R-154013?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Structural BIM Technician</a><span class="job-loc">CA.ON.Toronto.191 The West Mall</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">BWXT</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.bwxt.com/job/Kitchener-Field-Engineer-ON/1388283900/" target="_blank" rel="noopener" class="job-title">Field Engineer</a><span class="job-loc">Kitchener, ON, CA</span></li>
+          <li><a href="https://careers.bwxt.com/job/Kitchener-Field-Engineer-%286-month-contract%29-ON/1388284500/" target="_blank" rel="noopener" class="job-title">Field Engineer (6-month contract)</a><span class="job-loc">Kitchener, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Black &amp; McDonald</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://black-mcdonald-limited.breezy.hr/p/da68843b391c01-facility-supervisor" target="_blank" rel="noopener" class="job-title">Facility Supervisor</a><span class="job-loc">London, ON</span></li>
+          <li><a href="https://black-mcdonald-limited.breezy.hr/p/11f47fdcfb6101-general-superintendent-heavy-civil-liuna-183" target="_blank" rel="noopener" class="job-title">General Superintendent - Heavy Civil (LiUNA 183)</a><span class="job-loc">Greater Toronto Area, ON</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Bruce Power</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://brucepower.wd3.myworkdayjobs.com/en-US/BrucePower/job/Bruce-Power/Health-Physicist---Future-Opportunities_10013020" target="_blank" rel="noopener" class="job-title">Health Physicist - Future Opportunities</a><span class="job-loc">Bruce Power</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Cameco</span><span class="company-count">7 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42044&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Engineer, Electrical</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42136&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Executive Assistant</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42167&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Materials Planning and Logistics Analyst</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42169&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Principal, Global Growth</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42125&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Student, Environmental Assistant</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42135&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Supervisor, Aviation Logistics</a></li>
+          <li><a href="https://career17.sapsf.com/career?career%5fns=job%5flisting&amp;company=Cameco&amp;navBarLevel=JOB%5fSEARCH&amp;rcm%5fsite%5flocale=en%5fUS&amp;career_job_req_id=42157&amp;selected_lang=en_US&amp;jobAlertController_jobAlertId=&amp;jobAlertController_jobAlertName=&amp;browserTimeZone=America/Toronto&amp;_s.crb=%2bIfxOUIYw%2bCK3AokpDyvtxhgxESptVTrMvlIZvmnA%2fs%3d" target="_blank" rel="noopener" class="job-title">Supervisor, Maintenance (Shift Coverage)</a></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">GE Vernova</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.gevernova.com/ehs-manufacturing-decarbonation-leader/job/R5038231" target="_blank" rel="noopener" class="job-title">EHS Manufacturing &amp; Decarbonation Leader</a><span class="job-loc">+4More Locations</span></li>
+          <li><a href="https://careers.gevernova.com/ing%C3%A9nieur-principal-des-applications-lead-application-engineer/job/R5037597" target="_blank" rel="noopener" class="job-title">Ingénieur principal des applications /Lead Application Engineer</a><span class="job-loc">+4More Locations</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Hatch</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.hatch.com/job/Mississauga-Lead-Cost-Controller-ON/1364777900/" target="_blank" rel="noopener" class="job-title">Lead Cost Controller</a><span class="job-loc">Mississauga, ON, CA</span></li>
+          <li><a href="https://jobs.hatch.com/job/Mississauga-PlannerScheduler-Senior-ON/1350226300/" target="_blank" rel="noopener" class="job-title">Planner/Scheduler - Senior</a><span class="job-loc">Mississauga, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Kinectrics</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.kinectrics.com/job/Toronto-Mechanical-Engineer-NET-Onta/600851417/" target="_blank" rel="noopener" class="job-title">Mechanical Engineer - NET</a><span class="job-loc">Toronto, Ontario, Canada</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">OPG</span><span class="company-count">10 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.opg.com/job/Oshawa-Cyber-Security-Specialist-ON-L1H-8W8/597990317/" target="_blank" rel="noopener" class="job-title">Cyber Security Specialist</a><span class="job-loc">Oshawa, ON, CA, L1H 8W8</span></li>
+          <li><a href="https://jobs.opg.com/job/Renfrew-Fall-2026-Co-OpDevelopment-Environmental-Science%2C-Ecology-&amp;-Wildlife-Programs-Renfrew-ON-K7V-0C2/602127317/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Environmental Science, Ecology &amp; Wildlife Programs - Renfrew</a><span class="job-loc">Renfrew, ON, CA, K7V 0C2</span></li>
+          <li><a href="https://jobs.opg.com/job/Niagara-Fall-2026-Co-OpDevelopment-Mechanical-&amp;-Electrical-Engineering-Programs-Niagara-ON-L0S-1J0/602128317/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Mechanical &amp; Electrical Engineering Programs - Niagara</a><span class="job-loc">Niagara, ON, CA, L0S 1J0</span></li>
+          <li><a href="https://jobs.opg.com/job/Kincardine-Fall-2026-Co-opDevelopment-Nuclear-&amp;-Mechanical-Engineering-Tiverton-ON-999-999/602130617/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-op/Development - Nuclear &amp; Mechanical Engineering - Tiverton</a><span class="job-loc">Kincardine, ON, CA, 999 999</span></li>
+          <li><a href="https://jobs.opg.com/job/Oshawa-Fall-2026-Co-OpDevelopment-Supply-Chain%2C-Analytics-&amp;-Economics-Programs-Durham-Region-ON-L1H-8P7/602131817/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Supply Chain, Analytics &amp; Economics Programs - Durham Region</a><span class="job-loc">Oshawa, ON, CA, L1H 8P7</span></li>
+          <li><a href="https://jobs.opg.com/job/Ts%7B12%7D-Z%7B13%7Dl-Mountain-Fall-2026-Skilled-Trades-Co-OpDevelopment-Durham-ON-L1-C-3Z8/602131017/" target="_blank" rel="noopener" class="job-title">Fall 2026 Skilled Trades - Co-Op/Development - Durham</a><span class="job-loc">ON, CA, L1 C 3Z8</span></li>
+          <li><a href="https://jobs.opg.com/job/Pickering-Master-Plumber-ON-L1V-2R5/602124017/" target="_blank" rel="noopener" class="job-title">Master Plumber</a><span class="job-loc">Pickering, ON, CA, L1V 2R5</span></li>
+          <li><a href="https://jobs.opg.com/job/Nipigon-Service-Trades-Maintainer-ON-P0T-2J0/602127017/" target="_blank" rel="noopener" class="job-title">Service Trades Maintainer</a><span class="job-loc">Nipigon, ON, CA, P0T 2J0</span></li>
+          <li><a href="https://jobs.opg.com/job/Oshawa-Sr-Financial-Strategy-Analyst-ON-L1H-8W8/602169017/" target="_blank" rel="noopener" class="job-title">Sr Financial Strategy Analyst</a><span class="job-loc">Oshawa, ON, CA, L1H 8W8</span></li>
+          <li><a href="https://jobs.opg.com/job/Oshawa-Technical-Engineer-%28SMR-Services%29-ON-L1H-8W8/602160117/" target="_blank" rel="noopener" class="job-title">Technical Engineer (SMR Services)</a><span class="job-loc">Oshawa, ON, CA, L1H 8W8</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Westinghouse</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.westinghousenuclear.com/job/Kitchener-Senior-Engineer-Mechanical-Systems-and-Equipment-ON-N2P-0A4/1388244300/" target="_blank" rel="noopener" class="job-title">Senior Engineer - Mechanical Systems and Equipment</a><span class="job-loc">Kitchener, ON, CA, N2P 0A4</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section class="day">
+      <div class="day-header">
+        <h2 class="day-name">4 May 2026</h2>
+        
+        <span class="day-badge">69 new</span>
+      </div>
+      <div class="companies">
+        <div class="company">
+          <div class="company-head"><span class="company-name">AECL</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://boyden.thriveapp.ly/job/3170" target="_blank" rel="noopener" class="job-title">Executive Vice President, Chief Financial and Contracts Officer</a></li>
+          <li><a href="https://careersen-aecl.icims.com/jobs/1106/senior-advisor%2c-communications/job?mode=view&amp;mobile=false&amp;width=938&amp;height=500&amp;bga=true&amp;needsRedirect=false&amp;jan1offset=-300&amp;jun1offset=-240" target="_blank" rel="noopener" class="job-title">Senior Communications Advisor</a></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Aecon</span><span class="company-count">25 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.aecon.com/job/Pickering-Area-Manager-Fuel-Channel-Removal-ON/595893717/" target="_blank" rel="noopener" class="job-title">Area Manager - Fuel Channel Removal</a><span class="job-loc">Pickering, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Buyer-ON/598053617/" target="_blank" rel="noopener" class="job-title">Buyer</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Continuous-Improvement-Coordinator-ON/597084217/" target="_blank" rel="noopener" class="job-title">Continuous Improvement Coordinator</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Cambridge-Cost-Controller-ON/598378217/" target="_blank" rel="noopener" class="job-title">Cost Controller</a><span class="job-loc">Cambridge, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Cambridge-Director%2C-Nuclear-Quality-ON/601634417/" target="_blank" rel="noopener" class="job-title">Director, Nuclear Quality</a><span class="job-loc">Cambridge, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Pickering-FME-and-Confined-Space-Supervisor-ON/599188517/" target="_blank" rel="noopener" class="job-title">FME and Confined Space Supervisor</a><span class="job-loc">Pickering, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Jr_-Project-Manager-ON/601911717/" target="_blank" rel="noopener" class="job-title">Jr. Project Manager</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Pickering-Materials-Coordinator-ON/597386217/" target="_blank" rel="noopener" class="job-title">Materials Coordinator</a><span class="job-loc">Pickering, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Mechanical-Assessor-ON/600170717/" target="_blank" rel="noopener" class="job-title">Mechanical Assessor</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Procurement-Engineer-ON/598370617/" target="_blank" rel="noopener" class="job-title">Procurement Engineer</a><span class="job-loc">Bowmanville, ON, CA +1 more…</span></li>
+          <li><a href="https://jobs.aecon.com/job/Whitby-Procurement-Lead-ON/600816417/" target="_blank" rel="noopener" class="job-title">Procurement Lead</a><span class="job-loc">Whitby, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Project-Coordinator-ON/600678917/" target="_blank" rel="noopener" class="job-title">Project Coordinator</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Pickering-Project-Coordinator-New-to-Nuclear-ON/602009517/" target="_blank" rel="noopener" class="job-title">Project Coordinator [New to Nuclear]</a><span class="job-loc">Pickering, ON, CA +2 more…</span></li>
+          <li><a href="https://jobs.aecon.com/job/Cambridge-Project-Coordinator-Continuous-Improvement-ON/601479817/" target="_blank" rel="noopener" class="job-title">Project Coordinator- Continuous Improvement</a><span class="job-loc">Cambridge, ON, CA +2 more…</span></li>
+          <li><a href="https://jobs.aecon.com/job/Kincardine-Project-Director-Bruce-Power-Projects-ON/598773617/" target="_blank" rel="noopener" class="job-title">Project Director- Bruce Power Projects</a><span class="job-loc">Kincardine, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Brantford-Project-Engineer-Fabrication-ON/599155517/" target="_blank" rel="noopener" class="job-title">Project Engineer- Fabrication</a><span class="job-loc">Brantford, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-Project-Manager-ON/601912017/" target="_blank" rel="noopener" class="job-title">Project Manager</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-QC-Inspector-Mechanical-ON/601808517/" target="_blank" rel="noopener" class="job-title">QC Inspector - Mechanical</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-QC-Supervisor-ON/598892317/" target="_blank" rel="noopener" class="job-title">QC Supervisor</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Oshawa-Quality-Manager-ON/601925117/" target="_blank" rel="noopener" class="job-title">Quality Manager</a><span class="job-loc">Oshawa, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Kincardine-Quality-Supervisor-ON/599220217/" target="_blank" rel="noopener" class="job-title">Quality Supervisor</a><span class="job-loc">Kincardine, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Pickering-Senior-Planner-ON/599838717/" target="_blank" rel="noopener" class="job-title">Senior Planner</a><span class="job-loc">Pickering, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Bowmanville-STP-Operator-%28Unionized%29-ON/601470517/" target="_blank" rel="noopener" class="job-title">STP Operator (Unionized)</a><span class="job-loc">Bowmanville, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Cambridge-Technical-SME%2C-New-Nuclear-ON/599882517/" target="_blank" rel="noopener" class="job-title">Technical SME, New Nuclear</a><span class="job-loc">Cambridge, ON, CA</span></li>
+          <li><a href="https://jobs.aecon.com/job/Kincardine-Welding-Manager-ON/598277817/" target="_blank" rel="noopener" class="job-title">Welding Manager</a><span class="job-loc">Kincardine, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">AtkinsRealis</span><span class="company-count">6 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONPickering1340-Pickering-Parkway/Director--Secondary-Cycle---Balance-of-Plant-Performance_R-154753-1?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Director, Secondary Cycle &amp; Balance of Plant Performance</a><span class="job-loc">2 Locations</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/ORAT-Functional-Lead_R-154854?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">ORAT Functional Lead</a><span class="job-loc">CA.ON.Toronto.191 The West Mall</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Program-Scheduler_R-154520?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Program Scheduler</a><span class="job-loc">CA.ON.Toronto.191 The West Mall</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONMississauga2251-Speakman-Drive/Project-Engineering-Manager_R-154592?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Project Engineering Manager</a><span class="job-loc">CA.ON.Mississauga.2251 Speakman Drive</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Signaling-Systems-Engineer---ETCS---ERTMS_R-150563-1?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Signaling Systems Engineer – ETCS / ERTMS</a><span class="job-loc">3 Locations</span></li>
+          <li><a href="https://slihrms.wd3.myworkdayjobs.com/en-US/Careers/job/CAONToronto191-The-West-Mall/Substation-Designer_R-151380-1?source=careers_site&amp;locations=3a25a348ed440164d119c2efbf00a25e&amp;locations=04345744d12501b0fb91abc3664028e9&amp;locations=bcf52bf7594c10a2750f3bc208ab67c0&amp;locations=bcf52bf7594c10a2750e86b2037b679c&amp;locations=bcf52bf7594c10a2750e1cc43b2366b1&amp;locations=bcf52bf7594c10a275143bf0237b6e17" target="_blank" rel="noopener" class="job-title">Substation Designer</a><span class="job-loc">CA.ON.Toronto.191 The West Mall</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">BWXT</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.bwxt.com/job/Cambridge-Engineering-Analyst%2C-Trainee-%281-year-contract%29-ON/1387630900/" target="_blank" rel="noopener" class="job-title">Engineering Analyst, Trainee (1 year contract)</a><span class="job-loc">Cambridge, ON, CA</span></li>
+          <li><a href="https://careers.bwxt.com/job/Cambridge-Shop-Coordinator%2C-1-year-contract-ON/1387630200/" target="_blank" rel="noopener" class="job-title">Shop Coordinator, 1 year contract</a><span class="job-loc">Cambridge, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Black &amp; McDonald</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://black-mcdonald-limited.breezy.hr/p/4fd936ddaf7501-intern-facilities-management-operations" target="_blank" rel="noopener" class="job-title">Intern, Facilities Management &amp; Operations</a><span class="job-loc">Toronto, ON</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">CNL</span><span class="company-count">2 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://tre.tbe.taleo.net/tre01/ats/careers/v2/viewRequisition?org=CNLLTD&amp;cws=37&amp;rid=8752" target="_blank" rel="noopener" class="job-title">Fusion Integration Scientist</a></li>
+          <li><a href="https://tre.tbe.taleo.net/tre01/ats/careers/v2/viewRequisition?org=CNLLTD&amp;cws=37&amp;rid=8751" target="_blank" rel="noopener" class="job-title">Manager, S&amp;T Strategic Infrastructure</a></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">CNSC</span><span class="company-count">5 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&amp;clid=71850&amp;Page=JobDetails&amp;Jobid=J0914-0191&amp;BRID=7254&amp;lang=1" target="_blank" rel="noopener" class="job-title">Alumni Program</a></li>
+          <li><a href="https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&amp;clid=71850&amp;Page=JobDetails&amp;Jobid=J0426-0394&amp;BRID=445900&amp;lang=1" target="_blank" rel="noopener" class="job-title">Power Reactor Site Inspector</a></li>
+          <li><a href="https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&amp;clid=71850&amp;Page=JobDetails&amp;Jobid=J0326-0212&amp;BRID=444844&amp;lang=1" target="_blank" rel="noopener" class="job-title">Project Officer</a></li>
+          <li><a href="https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&amp;clid=71850&amp;Page=JobDetails&amp;Jobid=J0426-0059&amp;BRID=445883&amp;lang=1" target="_blank" rel="noopener" class="job-title">Regulatory Program Director</a></li>
+          <li><a href="https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&amp;clid=71850&amp;Page=JobDetails&amp;Jobid=J0426-0666&amp;BRID=445443&amp;lang=1" target="_blank" rel="noopener" class="job-title">Training Program Evaluation Officer</a></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">GE Vernova</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.gevernova.com/senior-project-manager/job/R5035583" target="_blank" rel="noopener" class="job-title">Senior Project Manager</a><span class="job-loc">+5More Locations</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Hatch</span><span class="company-count">3 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.hatch.com/job/Mississauga-Environmental-Engineer%2C-Air-Emissions-Modelling-ON/1365856200/" target="_blank" rel="noopener" class="job-title">Environmental Engineer, Air Emissions Modelling</a><span class="job-loc">Mississauga, ON, CA</span></li>
+          <li><a href="https://jobs.hatch.com/job/Mississauga-Project-Manager-Environmental-Consulting-Services-ON/1362687100/" target="_blank" rel="noopener" class="job-title">Project Manager - Environmental Consulting Services</a><span class="job-loc">Mississauga, ON, CA</span></li>
+          <li><a href="https://jobs.hatch.com/job/Mississauga-Proposal-Coordinator-ON/1362137800/" target="_blank" rel="noopener" class="job-title">Proposal Coordinator</a><span class="job-loc">Mississauga, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">Kinectrics</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.kinectrics.com/job/Toronto-Electrical-Data-EngineerAnalyst-Onta/601329617/" target="_blank" rel="noopener" class="job-title">Electrical Data Engineer/Analyst</a><span class="job-loc">Toronto, Ontario, Canada</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">NWMO</span><span class="company-count">10 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.nwmo.ca/vacancy/associate-engineer-scientist-technical-officer-site-characterization-380857.html" target="_blank" rel="noopener" class="job-title">Associate Engineer/Scientist/Technical Officer - Site Characterization</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/database-administrator-site-characterization-381158.html" target="_blank" rel="noopener" class="job-title">Database Administrator - Site Characterization</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/development-summer-student-corporate-communications-380419.html" target="_blank" rel="noopener" class="job-title">Development Summer Student - Corporate Communications</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/human-resources-coordinator-381018.html" target="_blank" rel="noopener" class="job-title">Human Resources Coordinator</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/legal-counsel-381019.html" target="_blank" rel="noopener" class="job-title">Legal Counsel</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/project-manager-construction-381017.html" target="_blank" rel="noopener" class="job-title">Project Manager, Construction</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/project-officer-engineer-second-dgr-project-381197.html" target="_blank" rel="noopener" class="job-title">Project Officer/Engineer- Second DGR Project</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/senior-advisor-external-relations-381159.html" target="_blank" rel="noopener" class="job-title">Senior Advisor, External Relations</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/technical-officer-regulatory-permitting-and-approvals-380917.html" target="_blank" rel="noopener" class="job-title">Technical Officer - Regulatory Permitting and Approvals</a></li>
+          <li><a href="https://careers.nwmo.ca/vacancy/vice-president-regulatory-approvals-381198.html" target="_blank" rel="noopener" class="job-title">Vice President, Regulatory Approvals</a></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">OPG</span><span class="company-count">11 jobs</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.opg.com/job/Kincardine-Fall-2026-Co-OpDevelopment-Business-Analytics-&amp;-Adult-Education-Programs-Tiverton-ON-999-999/602124217/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Business Analytics &amp; Adult Education Programs - Tiverton</a><span class="job-loc">Kincardine, ON, CA, 999 999</span></li>
+          <li><a href="https://jobs.opg.com/job/Fall-2026-Co-OpDevelopment-Business-Programs-Durham-Region-ON-L1H-2W8/602115717/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Business Programs - Durham Region</a><span class="job-loc">ON, CA, L1H 2W8</span></li>
+          <li><a href="https://jobs.opg.com/job/Fall-2026-Co-OpDevelopment-Business-Programs-Toronto-ON-M5G-1Z5/602117717/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Business Programs - Toronto</a><span class="job-loc">ON, CA, M5G 1Z5</span></li>
+          <li><a href="https://jobs.opg.com/job/V-Lake-Fall-2026-Co-OpDevelopment-Communications-and-Media-Design-Durham-Region-ON-L1V-2R5/602119017/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Communications and Media Design - Durham Region</a><span class="job-loc">ON, CA, L1V 2R5</span></li>
+          <li><a href="https://jobs.opg.com/job/Fall-2026-Co-OpDevelopment-Computer-Science-&amp;-IT-Programs-Durham-Region-ON-L1H-2W8/602117017/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Computer Science &amp; IT Programs - Durham Region</a><span class="job-loc">ON, CA, L1H 2W8</span></li>
+          <li><a href="https://jobs.opg.com/job/V-Lake-Fall-2026-Co-OpDevelopment-Data-Analytics-Durham-Region-ON-L1V-2R5/602121017/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Data Analytics - Durham Region</a><span class="job-loc">ON, CA, L1V 2R5</span></li>
+          <li><a href="https://jobs.opg.com/job/Fall-2026-Co-OpDevelopment-Engineering-Programs-Durham-Region-ON-L1H-2W8/602116817/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Engineering Programs - Durham Region</a><span class="job-loc">ON, CA, L1H 2W8</span></li>
+          <li><a href="https://jobs.opg.com/job/Oshawa-Fall-2026-Co-OpDevelopment-Masters-of-Business-Administration-%28MBA%29-Student-Durham-Region-ON-L1H-8P7/602118217/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Masters of Business Administration (MBA) Student - Durham Region</a><span class="job-loc">Oshawa, ON, CA, L1H 8P7</span></li>
+          <li><a href="https://jobs.opg.com/job/Pickering-Fall-2026-Co-OpDevelopment-Medical-Physics-&amp;-Health-Physics-Programs-Durham-Region-ON-L1V-2R5/602124717/" target="_blank" rel="noopener" class="job-title">Fall 2026 - Co-Op/Development - Medical Physics &amp; Health Physics Programs - Durham Region</a><span class="job-loc">Pickering, ON, CA, L1V 2R5</span></li>
+          <li><a href="https://jobs.opg.com/job/Ottawa-Senior-Electrical-Engineer-Hydroelectric-Generation-ON-K7V-0C2/602112517/" target="_blank" rel="noopener" class="job-title">Senior Electrical Engineer - Hydroelectric Generation</a><span class="job-loc">Ottawa, ON, CA, K7V 0C2</span></li>
+          <li><a href="https://jobs.opg.com/job/Oshawa-Senior-Financial-Analyst-ON-L1H-8W8/602124317/" target="_blank" rel="noopener" class="job-title">Senior Financial Analyst</a><span class="job-loc">Oshawa, ON, CA, L1H 8W8</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section class="day">
+      <div class="day-header">
+        <h2 class="day-name">3 May 2026</h2>
+        
+        <span class="day-badge">2 new</span>
+      </div>
+      <div class="companies">
+        <div class="company">
+          <div class="company-head"><span class="company-name">BWXT</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://careers.bwxt.com/job/Chalk-River-Nuclear-Projects-Director-%28Construction%29-CA-Posting-ON/1354287400/" target="_blank" rel="noopener" class="job-title">Nuclear Projects Director (Construction) - CA Posting</a><span class="job-loc">Chalk River, ON, CA</span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">OPG</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li><a href="https://jobs.opg.com/job/Oshawa-Senior-Financial-Accounting-Analyst-ON-L1H-8W8/601794817/" target="_blank" rel="noopener" class="job-title">Senior Financial Accounting Analyst</a><span class="job-loc">Oshawa, ON, CA, L1H 8W8</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">18 companies tracked &nbsp;·&nbsp; 7 snapshots<br>Not checked: Terrestrial Energy, NPX Innovation, Framatome Canada — career pages use layouts that can't be scraped automatically</footer>
+</body>
+</html>
