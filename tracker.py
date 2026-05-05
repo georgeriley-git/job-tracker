@@ -448,6 +448,252 @@ _CSS = """
 
     /* ── Footer ── */
     .footer { text-align: center; padding: 20px; font-size: .73rem; color: #94a3b8; }
+
+    /* ── Controls bar ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-select {
+      flex: 1;
+      min-width: 160px;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: .875rem;
+      color: #1e293b;
+      background: #fff;
+      cursor: pointer;
+    }
+    .run-btn {
+      padding: 8px 18px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .run-btn:hover:not(:disabled) { background: #1d4ed8; }
+    .run-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* ── Progress panel ── */
+    .progress-panel {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      font-size: .84rem;
+      color: #1e40af;
+      align-items: center;
+      gap: 10px;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #bfdbfe;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .header { flex-wrap: wrap; padding: 12px 14px; gap: 6px; }
+      .header-meta { font-size: .72rem; }
+      .main { padding: 14px 10px 60px; }
+      .day-header { flex-wrap: wrap; gap: 6px; }
+      .day-badge { margin-left: 0; }
+      .job-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 8px 14px 8px 26px;
+      }
+      .job-title { word-break: break-word; }
+      .job-loc { white-space: normal; }
+      .company-head { padding: 9px 12px; }
+      .company-name { font-size: .82rem; }
+      .controls { gap: 8px; }
+      .filter-select { min-width: 0; }
+    }
+"""
+
+
+_JS_TEMPLATE = """\
+(function () {
+  // ── GitHub context (owner/repo from GitHub Pages URL) ──
+  function githubCtx() {
+    var m = location.hostname.match(/^([^.]+)\\.github\\.io$/);
+    if (!m) return null;
+    var parts = location.pathname.replace(/^\\//, '').split('/');
+    return parts[0] ? { owner: m[1], repo: parts[0] } : null;
+  }
+
+  var ctx = githubCtx();
+  var runBtn = document.getElementById('run-btn');
+  var progressPanel = document.getElementById('progress-panel');
+  var progressText  = document.getElementById('progress-text');
+  var spinner       = document.getElementById('spinner');
+  var PORTAL_COUNT  = __N_PORTALS__;
+
+  // ── Company filter ──
+  var filterSelect = document.getElementById('company-filter');
+
+  (function buildFilter() {
+    var seen = {}, names = [];
+    document.querySelectorAll('.company-name').forEach(function (el) {
+      var n = el.textContent;
+      if (!seen[n]) { seen[n] = true; names.push(n); }
+    });
+    names.sort().forEach(function (n) {
+      var opt = document.createElement('option');
+      opt.value = n; opt.textContent = n;
+      filterSelect.appendChild(opt);
+    });
+  })();
+
+  filterSelect.addEventListener('change', function () {
+    var val = filterSelect.value;
+    document.querySelectorAll('.company').forEach(function (card) {
+      var name = card.querySelector('.company-name').textContent;
+      card.style.display = (!val || name === val) ? '' : 'none';
+    });
+    document.querySelectorAll('.day').forEach(function (day) {
+      var anyVisible = [].slice.call(day.querySelectorAll('.company'))
+        .some(function (c) { return c.style.display !== 'none'; });
+      day.style.display = anyVisible ? '' : 'none';
+    });
+  });
+
+  // ── Run button ──
+  if (!ctx) {
+    runBtn.disabled = true;
+    runBtn.title = 'Only works when viewed on GitHub Pages';
+    runBtn.style.opacity = '0.45';
+  }
+
+  runBtn.addEventListener('click', function () {
+    triggerScrape().catch(function (e) {
+      setStatus('Error: ' + e.message, false);
+      runBtn.disabled = !ctx;
+    });
+  });
+
+  function getPAT() {
+    var pat = localStorage.getItem('nj_gh_pat');
+    if (!pat) {
+      pat = prompt(
+        'Enter a GitHub Personal Access Token with the "workflow" scope.\\n' +
+        'It will be saved in this browser only (localStorage).'
+      );
+      if (pat && pat.trim()) localStorage.setItem('nj_gh_pat', pat.trim());
+    }
+    return pat ? pat.trim() : null;
+  }
+
+  function setStatus(msg, showSpinner) {
+    progressText.textContent = msg;
+    spinner.style.display = showSpinner ? '' : 'none';
+  }
+
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function triggerScrape() {
+    var pat = getPAT();
+    if (!pat) return;
+
+    runBtn.disabled = true;
+    progressPanel.style.display = 'flex';
+    setStatus('Triggering workflow…', true);
+
+    var startTime = Date.now();
+    var apiBase = 'https://api.github.com/repos/' + ctx.owner + '/' + ctx.repo;
+    var headers  = {
+      'Authorization': 'Bearer ' + pat,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+
+    var resp = await fetch(apiBase + '/actions/workflows/scrape.yml/dispatches', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ ref: 'main' })
+    });
+
+    if (resp.status === 401 || resp.status === 403) {
+      localStorage.removeItem('nj_gh_pat');
+      setStatus('PAT invalid or expired — try again.', false);
+      runBtn.disabled = false;
+      return;
+    }
+    if (!resp.ok) {
+      setStatus('Could not trigger workflow (HTTP ' + resp.status + '). Check PAT scope.', false);
+      runBtn.disabled = false;
+      return;
+    }
+
+    // Find the run (takes a few seconds to appear in the API)
+    var run = null, attempts = 0;
+    setStatus('Workflow queued, waiting for it to start…', true);
+    while (!run && attempts < 20) {
+      await sleep(4000);
+      attempts++;
+      try {
+        var r = await fetch(
+          apiBase + '/actions/runs?event=workflow_dispatch&per_page=5',
+          { headers: headers }
+        );
+        var data = await r.json();
+        var runs = data.workflow_runs || [];
+        for (var i = 0; i < runs.length; i++) {
+          if (new Date(runs[i].created_at).getTime() >= startTime - 20000) {
+            run = runs[i]; break;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (!run) {
+      setStatus('Could not locate the workflow run. Check the Actions tab on GitHub.', false);
+      runBtn.disabled = false;
+      return;
+    }
+
+    // Poll until completed
+    while (true) {
+      var elapsed   = Math.round((Date.now() - startTime) / 1000);
+      var estimated = Math.min(Math.floor(elapsed / 25), PORTAL_COUNT);
+
+      if (run.status === 'completed') {
+        if (run.conclusion === 'success') {
+          setStatus('Done! Refreshing…', false);
+          await sleep(1500);
+          location.reload();
+        } else {
+          setStatus('Workflow ended: ' + run.conclusion + '. Check the Actions tab for details.', false);
+          runBtn.disabled = false;
+        }
+        return;
+      }
+
+      setStatus(estimated + '/' + PORTAL_COUNT + ' employers checked (est.) — ' + elapsed + 's elapsed', true);
+      await sleep(15000);
+
+      try {
+        var upd = await fetch(run.url, { headers: headers });
+        run = await upd.json();
+      } catch (_) {}
+    }
+  }
+})();
 """
 
 
@@ -547,6 +793,21 @@ def generate_dashboard():
     else:
         warning_block = ""
 
+    js = _JS_TEMPLATE.replace("__N_PORTALS__", str(n_portals))
+
+    controls_html = (
+        '    <div class="controls">\n'
+        '      <select id="company-filter" class="filter-select">'
+        '<option value="">All companies</option>'
+        '</select>\n'
+        '      <button id="run-btn" class="run-btn">&#9654; Run Scraper</button>\n'
+        '    </div>\n'
+        '    <div id="progress-panel" class="progress-panel" style="display:none">\n'
+        '      <div id="spinner" class="spinner"></div>\n'
+        '      <span id="progress-text"></span>\n'
+        '    </div>\n'
+    )
+
     html = (
         '<!DOCTYPE html>\n'
         '<html lang="en">\n'
@@ -562,10 +823,12 @@ def generate_dashboard():
         f'    <span class="header-meta">Last scraped: {_esc(last_str)}</span>\n'
         '  </header>\n'
         '  <main class="main">\n'
+        f'{controls_html}'
         f'{warning_block}'
         f'{content}\n'
         '  </main>\n'
         f'  <footer class="footer">{footer}</footer>\n'
+        f'  <script>\n{js}\n  </script>\n'
         '</body>\n'
         '</html>\n'
     )
