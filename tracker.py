@@ -11,7 +11,8 @@ import json
 import random
 import re
 import sys
-from datetime import datetime, date as _date
+from datetime import datetime, date as _date, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 SNAPSHOTS_DIR  = Path("snapshots")
@@ -282,6 +283,22 @@ def _daily_new() -> list[tuple[str, dict[str, list[dict]]]]:
     return result
 
 
+def _intraday_new(date_str: str) -> set[tuple[str, str]]:
+    """Jobs that appear in the last snapshot of date_str but not in the first."""
+    snaps = [s for s in _all_snapshots() if _snap_date(s) == date_str]
+    if len(snaps) < 2:
+        return set()
+    first = json.loads(snaps[0].read_text(encoding="utf-8"))
+    last  = json.loads(snaps[-1].read_text(encoding="utf-8"))
+    result: set[tuple[str, str]] = set()
+    for company, jobs in last.items():
+        first_keys = {_job_key(j) for j in first.get(company, [])}
+        for j in jobs:
+            if _job_key(j) not in first_keys:
+                result.add((company, _job_key(j)))
+    return result
+
+
 def _scrape_regressions() -> list[str]:
     """Companies that had jobs in the previous snapshot but returned 0 in the latest one."""
     snaps = _all_snapshots()
@@ -387,7 +404,7 @@ _CSS = """
     .job-list { list-style: none; padding: 4px 0; }
     .job-list li {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
       padding: 7px 16px 7px 28px;
@@ -395,6 +412,10 @@ _CSS = """
       border-bottom: 1px solid #f8fafc;
     }
     .job-list li:last-child { border-bottom: none; }
+    .job-list li.job-new {
+      background: #f0fdf4;
+      border-left: 3px solid #22c55e;
+    }
     .job-list li::before {
       content: "›";
       position: absolute;
@@ -504,6 +525,110 @@ _CSS = """
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Pinned section ── */
+    #pinned-section {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #7c3aed;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .pinned-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: #faf5ff;
+      border-bottom: 1px solid #ede9fe;
+    }
+    .pinned-title {
+      font-size: .84rem;
+      font-weight: 700;
+      color: #5b21b6;
+      flex: 1;
+    }
+    .pinned-badge {
+      font-size: .7rem;
+      font-weight: 700;
+      background: #7c3aed;
+      color: #fff;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+    .pinned-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 8px 14px;
+      border-bottom: 1px solid #f8fafc;
+    }
+    .pinned-item:last-child { border-bottom: none; }
+    .pinned-item.drag-over  { background: #f5f3ff; }
+    .pinned-item.dragging   { opacity: .35; }
+    .drag-handle {
+      color: #d1d5db;
+      cursor: grab;
+      font-size: .78rem;
+      letter-spacing: -1px;
+      user-select: none;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .pinned-info { flex: 1; min-width: 0; }
+    .pinned-job-title {
+      font-size: .86rem;
+      color: #1d4ed8;
+      text-decoration: none;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pinned-job-title:hover { text-decoration: underline; }
+    span.pinned-job-title   { color: #374151; }
+    .pinned-meta {
+      font-size: .72rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .unpin-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .unpin-btn:hover { color: #ef4444; background: #fef2f2; }
+
+    /* ── Pin button on job rows ── */
+    .job-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .pin-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: .8rem;
+      line-height: 1;
+      opacity: .18;
+      transition: opacity .12s;
+      flex-shrink: 0;
+    }
+    .job-list li:hover .pin-btn { opacity: .55; }
+    .pin-btn:hover              { opacity: 1 !important; }
+    .pin-btn.is-pinned          { opacity: 1; }
+
     /* ── Mobile ── */
     @media (max-width: 600px) {
       .header { flex-wrap: wrap; padding: 12px 14px; gap: 6px; }
@@ -523,6 +648,8 @@ _CSS = """
       .company-name { font-size: .82rem; }
       .controls { gap: 8px; }
       .filter-select { min-width: 0; }
+      .pin-btn { opacity: .55; }
+      .drag-handle { display: none; }
     }
 """
 
@@ -697,19 +824,163 @@ _JS_TEMPLATE = """\
 """
 
 
+_PINNING_JS = """\
+(function () {
+  var STORE = 'nj_pinned_v1';
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORE) || '[]'); }
+    catch (_) { return []; }
+  }
+
+  function save(pins) { localStorage.setItem(STORE, JSON.stringify(pins)); }
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function fmtDate(s) {
+    var p = s.split('-');
+    if (p.length < 3) return s;
+    var mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return +p[2] + ' ' + (mon[+p[1] - 1] || '') + ' ' + p[0];
+  }
+
+  function render() {
+    var pins    = load();
+    var section = document.getElementById('pinned-section');
+    var list    = document.getElementById('pinned-list');
+    var badge   = document.getElementById('pinned-count');
+    if (!section) return;
+
+    if (!pins.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    badge.textContent = pins.length;
+
+    list.innerHTML = pins.map(function (p, i) {
+      var titleHtml = p.url
+        ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="pinned-job-title">' + esc(p.title) + '</a>'
+        : '<span class="pinned-job-title">' + esc(p.title) + '</span>';
+      return (
+        '<div class="pinned-item" draggable="true" data-idx="' + i + '">' +
+        '<span class="drag-handle" aria-hidden="true">⋮⋮</span>' +
+        '<div class="pinned-info">' + titleHtml +
+        '<div class="pinned-meta">' + esc(p.company) + ' &middot; ' + fmtDate(p.date) + '</div>' +
+        '</div>' +
+        '<button class="unpin-btn" data-idx="' + i + '" title="Unpin (applied)" aria-label="Unpin">×</button>' +
+        '</div>'
+      );
+    }).join('');
+
+    list.querySelectorAll('.unpin-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pins = load();
+        pins.splice(+btn.dataset.idx, 1);
+        save(pins);
+        syncButtons();
+        render();
+      });
+    });
+
+    initDrag();
+  }
+
+  function syncButtons() {
+    var set = {};
+    load().forEach(function (p) { set[p.id] = true; });
+    document.querySelectorAll('li[data-pin-id]').forEach(function (li) {
+      var btn = li.querySelector('.pin-btn');
+      if (!btn) return;
+      var pinned = !!set[li.dataset.pinId];
+      btn.classList.toggle('is-pinned', pinned);
+      btn.setAttribute('aria-pressed', String(pinned));
+    });
+  }
+
+  document.querySelectorAll('.pin-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var li = btn.closest('li[data-pin-id]');
+      if (!li) return;
+      var id   = li.dataset.pinId;
+      var pins = load();
+      var idx  = pins.findIndex(function (p) { return p.id === id; });
+      if (idx >= 0) {
+        pins.splice(idx, 1);
+      } else {
+        pins.push({
+          id:      id,
+          title:   li.dataset.title,
+          url:     li.dataset.url || null,
+          company: li.dataset.company,
+          date:    li.dataset.date
+        });
+      }
+      save(pins);
+      syncButtons();
+      render();
+    });
+  });
+
+  function initDrag() {
+    var list    = document.getElementById('pinned-list');
+    var dragged = null;
+    list.querySelectorAll('.pinned-item').forEach(function (item) {
+      item.addEventListener('dragstart', function (e) {
+        dragged = item;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(function () { item.classList.add('dragging'); }, 0);
+      });
+      item.addEventListener('dragend', function () {
+        item.classList.remove('dragging');
+        list.querySelectorAll('.pinned-item').forEach(function (i) { i.classList.remove('drag-over'); });
+        dragged = null;
+      });
+      item.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        if (item !== dragged) {
+          list.querySelectorAll('.pinned-item').forEach(function (i) { i.classList.remove('drag-over'); });
+          item.classList.add('drag-over');
+        }
+      });
+      item.addEventListener('dragleave', function () { item.classList.remove('drag-over'); });
+      item.addEventListener('drop', function (e) {
+        e.preventDefault();
+        if (!dragged || item === dragged) return;
+        var pins = load();
+        pins.splice(+item.dataset.idx, 0, pins.splice(+dragged.dataset.idx, 1)[0]);
+        save(pins);
+        render();
+        syncButtons();
+      });
+    });
+  }
+
+  render();
+  syncButtons();
+})();
+"""
+
+
 def generate_dashboard():
     snaps = _all_snapshots()
 
     if snaps:
-        last_dt  = _snap_dt(snaps[-1])
-        last_str = f"{last_dt.day} {last_dt.strftime('%B %Y')} at {last_dt.strftime('%H:%M')}"
+        last_utc = _snap_dt(snaps[-1]).replace(tzinfo=timezone.utc)
+        last_et  = last_utc.astimezone(ZoneInfo("America/Toronto"))
+        last_str = (
+            f"{last_et.day} {last_et.strftime('%B %Y')} "
+            f"at {last_et.strftime('%H:%M')} {last_et.strftime('%Z')}"
+        )
     else:
         last_str = "never"
 
     n_portals = len(load_portals())
     n_snaps   = len(snaps)
-    today_str = _date.today().isoformat()
-    result    = _daily_new()
+    today_str    = _date.today().isoformat()
+    result       = _daily_new()
+    intraday_new = _intraday_new(today_str)
 
     if not result:
         content = (
@@ -745,7 +1016,19 @@ def generate_dashboard():
                         f'<span class="job-loc">{_esc(loc)}</span>'
                         if loc else ""
                     )
-                    items.append(f"          <li>{title_html}{loc_html}</li>")
+                    is_new   = date_str == today_str and (company, _job_key(job)) in intraday_new
+                    li_class = ' class="job-new"' if is_new else ""
+                    pin_id   = _esc(f"{company}|{j['title']}".lower())
+                    data_attrs = (
+                        f' data-pin-id="{pin_id}"'
+                        f' data-title="{_esc(j["title"])}"'
+                        f' data-url="{_esc(j.get("url") or "")}"'
+                        f' data-company="{_esc(company)}"'
+                        f' data-date="{date_str}"'
+                    )
+                    pin_btn    = '<button class="pin-btn" aria-pressed="false" aria-label="Pin this job">\U0001f4cc</button>'
+                    right_html = f'<span class="job-right">{loc_html}{pin_btn}</span>'
+                    items.append(f'          <li{li_class}{data_attrs}>{title_html}{right_html}</li>')
 
                 cards.append(
                     f'        <div class="company">\n'
@@ -823,12 +1106,20 @@ def generate_dashboard():
         f'    <span class="header-meta">Last scraped: {_esc(last_str)}</span>\n'
         '  </header>\n'
         '  <main class="main">\n'
+        '    <section id="pinned-section" style="display:none">\n'
+        '      <div class="pinned-header">\n'
+        '        <span class="pinned-title">\U0001f4cc Pinned</span>\n'
+        '        <span id="pinned-count" class="pinned-badge">0</span>\n'
+        '      </div>\n'
+        '      <div id="pinned-list"></div>\n'
+        '    </section>\n'
         f'{controls_html}'
         f'{warning_block}'
         f'{content}\n'
         '  </main>\n'
         f'  <footer class="footer">{footer}</footer>\n'
         f'  <script>\n{js}\n  </script>\n'
+        f'  <script>\n{_PINNING_JS}\n  </script>\n'
         '</body>\n'
         '</html>\n'
     )
@@ -841,7 +1132,7 @@ def generate_dashboard():
 def scrape():
     from playwright.sync_api import sync_playwright  # noqa: PLC0415
 
-    now   = datetime.now()
+    now   = datetime.now(timezone.utc)
     stamp = now.strftime("%Y-%m-%d_%H%M")
     SNAPSHOTS_DIR.mkdir(exist_ok=True)
     snapshot_path = SNAPSHOTS_DIR / f"{stamp}.json"
