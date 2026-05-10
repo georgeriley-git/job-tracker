@@ -911,6 +911,7 @@ _PINNING_JS = """\
       branch:  'main'
     };
     if (sha) body.sha = sha;
+    console.log('[pins] PUT', url, '| sha:', sha, '| pins:', pins.length, '| body keys:', Object.keys(body));
     var doFetch = function (b) {
       return fetch(url, {
         method:  'PUT',
@@ -920,6 +921,7 @@ _PINNING_JS = """\
     };
     try {
       var r = await doFetch(body);
+      console.log('[pins] response status:', r.status);
       if (r.status === 409) {
         // Stale SHA — re-fetch and retry once
         var fresh = await ghFetch();
@@ -927,12 +929,25 @@ _PINNING_JS = """\
         fileSha  = fresh.sha;
         body.sha = fresh.sha;
         r = await doFetch(body);
+        console.log('[pins] retry status:', r.status);
       }
-      if (!r.ok) return false;
+      if (!r.ok) {
+        var errBody = await r.text();
+        console.error('[pins] write failed', r.status, errBody);
+        if (r.status === 401 || r.status === 403) {
+          localStorage.removeItem(PAT_KEY);
+          setStatus('PAT needs "repo" scope — click a pin to re-enter');
+        }
+        return false;
+      }
       var d = await r.json();
       if (d.content && d.content.sha) fileSha = d.content.sha;
+      console.log('[pins] write OK, new sha:', fileSha);
       return true;
-    } catch (_) { return false; }
+    } catch (err) {
+      console.error('[pins] write exception:', err);
+      return false;
+    }
   }
 
   // ── localStorage fallback ───────────────────────────────────────────────────
@@ -945,15 +960,19 @@ _PINNING_JS = """\
   // ── Persist (GitHub or localStorage) ───────────────────────────────────────
   async function persist() {
     if (ctx) {
+      console.log('[pins] persist → GitHub |', cache.length, 'pins | sha:', fileSha);
       setStatus('Saving…');
       var ok = await ghWrite(cache, fileSha);
       if (ok) {
         setStatus('');
       } else {
-        setStatus('Save failed — check PAT scope');
-        setTimeout(function () { setStatus(''); }, 5000);
+        if (!document.getElementById('pin-status').textContent) {
+          setStatus('Save failed — check PAT scope');
+          setTimeout(function () { setStatus(''); }, 5000);
+        }
       }
     } else {
+      console.log('[pins] persist → localStorage |', cache.length, 'pins');
       lsSave(cache);
     }
   }
@@ -1101,13 +1120,18 @@ _PINNING_JS = """\
 
   // ── Init ────────────────────────────────────────────────────────────────────
   async function init() {
+    console.log('[pins] init | ctx:', ctx ? ctx.owner + '/' + ctx.repo : 'none (local file)');
     if (ctx && localStorage.getItem(PAT_KEY)) {
+      console.log('[pins] fetching pinned.json from GitHub…');
       var result = await ghFetch();
+      console.log('[pins] ghFetch result:', JSON.stringify(result && { pins: result.pins.length, sha: result.sha }));
       if (result) { cache = result.pins; fileSha = result.sha; }
-    } else if (!ctx) {
+    } else if (ctx) {
+      console.log('[pins] GitHub Pages detected but no PAT stored — will load on first pin click');
+    } else {
       cache = lsLoad();
+      console.log('[pins] local file — loaded', cache.length, 'pins from localStorage');
     }
-    // ctx present but no PAT yet: start empty; load fires on first pin click
     syncButtons();
     render();
   }
