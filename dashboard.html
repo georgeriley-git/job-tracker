@@ -231,6 +231,11 @@
       color: #5b21b6;
       flex: 1;
     }
+    #pin-status {
+      font-size: .72rem;
+      color: #7c3aed;
+      padding-right: 4px;
+    }
     .pinned-badge {
       font-size: .7rem;
       font-weight: 700;
@@ -338,12 +343,13 @@
 <body>
   <header class="header">
     <span class="header-title">Nuclear Jobs Scraper</span>
-    <span class="header-meta">Last scraped: 9 May 2026 at 17:09 EDT</span>
+    <span class="header-meta">Last scraped: 10 May 2026 at 03:37 EDT</span>
   </header>
   <main class="main">
     <section id="pinned-section" style="display:none">
       <div class="pinned-header">
         <span class="pinned-title">📌 Pinned</span>
+        <span id="pin-status" style="display:none"></span>
         <span id="pinned-count" class="pinned-badge">0</span>
       </div>
       <div id="pinned-list"></div>
@@ -358,8 +364,42 @@
     </div>
     <section class="day">
       <div class="day-header">
-        <h2 class="day-name">9 May 2026</h2>
+        <h2 class="day-name">10 May 2026</h2>
         <span class="today-pill">today</span>
+        <span class="day-badge">15 new</span>
+      </div>
+      <div class="companies">
+        <div class="company">
+          <div class="company-head"><span class="company-name">Aecon</span><span class="company-count">14 jobs</span></div>
+          <ul class="job-list">
+          <li data-pin-id="aecon|fleet manager" data-title="Fleet Manager" data-url="https://jobs.aecon.com/job/Bowmanville-Fleet-Manager-ON/598200517/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Bowmanville-Fleet-Manager-ON/598200517/" target="_blank" rel="noopener" class="job-title">Fleet Manager</a><span class="job-right"><span class="job-loc">Bowmanville, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|mechanic (chattham)" data-title="Mechanic (Chattham)" data-url="https://jobs.aecon.com/job/Tupperville-Mechanic-%28Chattham%29-ON/599788917/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Tupperville-Mechanic-%28Chattham%29-ON/599788917/" target="_blank" rel="noopener" class="job-title">Mechanic (Chattham)</a><span class="job-right"><span class="job-loc">Tupperville, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|mechanic (ottawa)" data-title="Mechanic (Ottawa)" data-url="https://jobs.aecon.com/job/Gloucester-Mechanic-%28Ottawa%29-ON/599789017/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Gloucester-Mechanic-%28Ottawa%29-ON/599789017/" target="_blank" rel="noopener" class="job-title">Mechanic (Ottawa)</a><span class="job-right"><span class="job-loc">Gloucester, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|plaa manager" data-title="PLAA Manager" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-PLAA-Manager-ON/600663117/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-PLAA-Manager-ON/600663117/" target="_blank" rel="noopener" class="job-title">PLAA Manager</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|procurement lead" data-title="Procurement Lead" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-Procurement-Lead-ON/600648717/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-Procurement-Lead-ON/600648717/" target="_blank" rel="noopener" class="job-title">Procurement Lead</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|project coordinator (electrical)" data-title="Project Coordinator (Electrical)" data-url="https://jobs.aecon.com/job/Scarborough-Project-Coordinator-%28Electrical%29-ON/598884817/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Scarborough-Project-Coordinator-%28Electrical%29-ON/598884817/" target="_blank" rel="noopener" class="job-title">Project Coordinator (Electrical)</a><span class="job-right"><span class="job-loc">Scarborough, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|qc supervisor" data-title="QC Supervisor" data-url="https://jobs.aecon.com/job/Bowmanville-QC-Supervisor-ON/598892317/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Bowmanville-QC-Supervisor-ON/598892317/" target="_blank" rel="noopener" class="job-title">QC Supervisor</a><span class="job-right"><span class="job-loc">Bowmanville, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|quality manager" data-title="Quality Manager" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-Quality-Manager-ON/600657417/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-Quality-Manager-ON/600657417/" target="_blank" rel="noopener" class="job-title">Quality Manager</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|senior project accountant" data-title="Senior Project Accountant" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-Senior-Project-Accountant-ON/600647517/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-Senior-Project-Accountant-ON/600647517/" target="_blank" rel="noopener" class="job-title">Senior Project Accountant</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|specialist, commercial" data-title="Specialist, Commercial" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-Specialist%2C-Commercial-ON/600664017/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-Specialist%2C-Commercial-ON/600664017/" target="_blank" rel="noopener" class="job-title">Specialist, Commercial</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|sr. advisor, ehs" data-title="Sr. Advisor, EHS" data-url="https://jobs.aecon.com/job/Toronto-Sr_-Advisor%2C-EHS-ON/600641717/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Toronto-Sr_-Advisor%2C-EHS-ON/600641717/" target="_blank" rel="noopener" class="job-title">Sr. Advisor, EHS</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|sr. financial analyst" data-title="Sr. Financial Analyst" data-url="https://jobs.aecon.com/ONxpress/job/Toronto-Sr_-Financial-Analyst-ON/600662517/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/ONxpress/job/Toronto-Sr_-Financial-Analyst-ON/600662517/" target="_blank" rel="noopener" class="job-title">Sr. Financial Analyst</a><span class="job-right"><span class="job-loc">Toronto, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|superintendent" data-title="Superintendent" data-url="https://jobs.aecon.com/job/Gloucester-Superintendent-ON/598859717/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Gloucester-Superintendent-ON/598859717/" target="_blank" rel="noopener" class="job-title">Superintendent</a><span class="job-right"><span class="job-loc">Gloucester, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          <li data-pin-id="aecon|training coordinator - welding" data-title="Training Coordinator - Welding" data-url="https://jobs.aecon.com/job/Bowmanville-Training-Coordinator-Welding-ON/598196617/" data-company="Aecon" data-date="2026-05-10"><a href="https://jobs.aecon.com/job/Bowmanville-Training-Coordinator-Welding-ON/598196617/" target="_blank" rel="noopener" class="job-title">Training Coordinator - Welding</a><span class="job-right"><span class="job-loc">Bowmanville, ON, CA</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          </ul>
+        </div>
+        <div class="company">
+          <div class="company-head"><span class="company-name">GE Vernova</span><span class="company-count">1 job</span></div>
+          <ul class="job-list">
+          <li data-pin-id="ge vernova|contract manager (remote eligible)" data-title="Contract Manager (Remote Eligible)" data-url="https://careers.gevernova.com/contract-manager-remote-eligible/job/R5033612" data-company="GE Vernova" data-date="2026-05-10"><a href="https://careers.gevernova.com/contract-manager-remote-eligible/job/R5033612" target="_blank" rel="noopener" class="job-title">Contract Manager (Remote Eligible)</a><span class="job-right"><span class="job-loc">+2More Locations</span><button class="pin-btn" aria-pressed="false" aria-label="Pin this job">📌</button></span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section class="day">
+      <div class="day-header">
+        <h2 class="day-name">9 May 2026</h2>
+        
         <span class="day-badge">21 new</span>
       </div>
       <div class="companies">
@@ -1063,7 +1103,7 @@
       </div>
     </section>
   </main>
-  <footer class="footer">19 companies tracked &nbsp;·&nbsp; 24 snapshots<br>Not checked: Terrestrial Energy, NPX Innovation, Framatome Canada — career pages use layouts that can't be scraped automatically</footer>
+  <footer class="footer">19 companies tracked &nbsp;·&nbsp; 25 snapshots<br>Not checked: Terrestrial Energy, NPX Innovation, Framatome Canada — career pages use layouts that can't be scraped automatically</footer>
   <script>
 (function () {
   // ── GitHub context (owner/repo from GitHub Pages URL) ──
@@ -1128,8 +1168,9 @@
     var pat = localStorage.getItem('nj_gh_pat');
     if (!pat) {
       pat = prompt(
-        'Enter a GitHub Personal Access Token with the "workflow" scope.\n' +
-        'It will be saved in this browser only (localStorage).'
+        'Enter a GitHub Personal Access Token with "repo" scope.\n' +
+        'Required for workflow dispatch and pinned.json sync.\n' +
+        'Saved in this browser only.'
       );
       if (pat && pat.trim()) localStorage.setItem('nj_gh_pat', pat.trim());
     }
@@ -1235,70 +1276,194 @@
   </script>
   <script>
 (function () {
-  var STORE = 'nj_pinned_v1';
+  var PAT_KEY = 'nj_gh_pat';
+  var LS_KEY  = 'nj_pinned_v1';  // localStorage fallback (non-GitHub-Pages)
 
-  function load() {
-    try { return JSON.parse(localStorage.getItem(STORE) || '[]'); }
-    catch (_) { return []; }
+  var cache   = [];    // in-memory pin list
+  var fileSha = null;  // SHA of pinned.json, required for GitHub API updates
+
+  // ── GitHub context ──────────────────────────────────────────────────────────
+  function githubCtx() {
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    if (!m) return null;
+    var parts = location.pathname.replace(/^\//, '').split('/');
+    return parts[0] ? { owner: m[1], repo: parts[0] } : null;
+  }
+  var ctx = githubCtx();
+
+  function apiUrl() {
+    return ctx
+      ? 'https://api.github.com/repos/' + ctx.owner + '/' + ctx.repo + '/contents/pinned.json'
+      : null;
   }
 
-  function save(pins) { localStorage.setItem(STORE, JSON.stringify(pins)); }
+  function ghHeaders() {
+    return {
+      'Authorization': 'Bearer ' + localStorage.getItem(PAT_KEY),
+      'Accept': 'application/vnd.github+json'
+    };
+  }
 
+  function getPAT() {
+    var pat = localStorage.getItem(PAT_KEY);
+    if (!pat) {
+      pat = prompt(
+        'Enter a GitHub Personal Access Token with "repo" scope.
+' +
+        'Required for workflow dispatch and pinned.json sync.
+' +
+        'Saved in this browser only.'
+      );
+      if (pat && pat.trim()) localStorage.setItem(PAT_KEY, pat.trim());
+    }
+    return pat ? pat.trim() : null;
+  }
+
+  // ── Base-64 helpers (UTF-8 safe) ────────────────────────────────────────────
+  function toB64(str) {
+    var bytes = new TextEncoder().encode(str);
+    return btoa(Array.from(bytes, function (b) { return String.fromCharCode(b); }).join(''));
+  }
+  function fromB64(b64) {
+    var bytes = atob(b64.replace(/\s/g, '')).split('').map(function (c) { return c.charCodeAt(0); });
+    return new TextDecoder().decode(new Uint8Array(bytes));
+  }
+
+  // ── GitHub API ──────────────────────────────────────────────────────────────
+  async function ghFetch() {
+    var url = apiUrl();
+    if (!url || !localStorage.getItem(PAT_KEY)) return null;
+    try {
+      var r = await fetch(url, { headers: ghHeaders() });
+      if (r.status === 404) return { pins: [], sha: null };
+      if (r.status === 401 || r.status === 403) {
+        localStorage.removeItem(PAT_KEY);
+        setStatus('PAT invalid — click a pin to re-enter');
+        return null;
+      }
+      if (!r.ok) return null;
+      var d    = await r.json();
+      var pins = JSON.parse(fromB64(d.content));
+      return { pins: Array.isArray(pins) ? pins : [], sha: d.sha };
+    } catch (_) { return null; }
+  }
+
+  async function ghWrite(pins, sha) {
+    var url = apiUrl();
+    if (!url) return false;
+    var body = {
+      message: 'pins: update',
+      content: toB64(JSON.stringify(pins, null, 2) + '
+'),
+      branch:  'main'
+    };
+    if (sha) body.sha = sha;
+    var doFetch = function (b) {
+      return fetch(url, {
+        method:  'PUT',
+        headers: Object.assign({}, ghHeaders(), { 'Content-Type': 'application/json' }),
+        body:    JSON.stringify(b)
+      });
+    };
+    try {
+      var r = await doFetch(body);
+      if (r.status === 409) {
+        // Stale SHA — re-fetch and retry once
+        var fresh = await ghFetch();
+        if (!fresh) return false;
+        fileSha  = fresh.sha;
+        body.sha = fresh.sha;
+        r = await doFetch(body);
+      }
+      if (!r.ok) return false;
+      var d = await r.json();
+      if (d.content && d.content.sha) fileSha = d.content.sha;
+      return true;
+    } catch (_) { return false; }
+  }
+
+  // ── localStorage fallback ───────────────────────────────────────────────────
+  function lsLoad() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+    catch (_) { return []; }
+  }
+  function lsSave(pins) { localStorage.setItem(LS_KEY, JSON.stringify(pins)); }
+
+  // ── Persist (GitHub or localStorage) ───────────────────────────────────────
+  async function persist() {
+    if (ctx) {
+      setStatus('Saving…');
+      var ok = await ghWrite(cache, fileSha);
+      if (ok) {
+        setStatus('');
+      } else {
+        setStatus('Save failed — check PAT scope');
+        setTimeout(function () { setStatus(''); }, 5000);
+      }
+    } else {
+      lsSave(cache);
+    }
+  }
+
+  // ── Status indicator ────────────────────────────────────────────────────────
+  function setStatus(msg) {
+    var el = document.getElementById('pin-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = msg ? '' : 'none';
+  }
+
+  // ── HTML helpers ────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s || '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-
   function fmtDate(s) {
     var p = s.split('-');
     if (p.length < 3) return s;
     var mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return +p[2] + ' ' + (mon[+p[1] - 1] || '') + ' ' + p[0];
+    return +p[2] + ' ' + (mon[+p[1] - 1] || '') + ' ' + p[0];
   }
 
+  // ── Render pinned section ───────────────────────────────────────────────────
   function render() {
-    var pins    = load();
     var section = document.getElementById('pinned-section');
     var list    = document.getElementById('pinned-list');
     var badge   = document.getElementById('pinned-count');
     if (!section) return;
-
-    if (!pins.length) { section.style.display = 'none'; return; }
+    if (!cache.length) { section.style.display = 'none'; return; }
     section.style.display = '';
-    badge.textContent = pins.length;
-
-    list.innerHTML = pins.map(function (p, i) {
-      var titleHtml = p.url
+    badge.textContent = cache.length;
+    list.innerHTML = cache.map(function (p, i) {
+      var t = p.url
         ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="pinned-job-title">' + esc(p.title) + '</a>'
         : '<span class="pinned-job-title">' + esc(p.title) + '</span>';
       return (
         '<div class="pinned-item" draggable="true" data-idx="' + i + '">' +
         '<span class="drag-handle" aria-hidden="true">⋮⋮</span>' +
-        '<div class="pinned-info">' + titleHtml +
+        '<div class="pinned-info">' + t +
         '<div class="pinned-meta">' + esc(p.company) + ' &middot; ' + fmtDate(p.date) + '</div>' +
         '</div>' +
         '<button class="unpin-btn" data-idx="' + i + '" title="Unpin (applied)" aria-label="Unpin">×</button>' +
         '</div>'
       );
     }).join('');
-
     list.querySelectorAll('.unpin-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var pins = load();
-        pins.splice(+btn.dataset.idx, 1);
-        save(pins);
-        syncButtons();
+        cache.splice(+btn.dataset.idx, 1);
         render();
+        syncButtons();
+        persist();
       });
     });
-
     initDrag();
   }
 
+  // ── Sync pin-button states ──────────────────────────────────────────────────
   function syncButtons() {
     var set = {};
-    load().forEach(function (p) { set[p.id] = true; });
+    cache.forEach(function (p) { set[p.id] = true; });
     document.querySelectorAll('li[data-pin-id]').forEach(function (li) {
       var btn = li.querySelector('.pin-btn');
       if (!btn) return;
@@ -1308,30 +1473,46 @@
     });
   }
 
+  // ── Toggle a pin ────────────────────────────────────────────────────────────
+  function togglePin(li) {
+    var id  = li.dataset.pinId;
+    var idx = cache.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) {
+      cache.splice(idx, 1);
+    } else {
+      cache.push({
+        id:      id,
+        title:   li.dataset.title,
+        url:     li.dataset.url || null,
+        company: li.dataset.company,
+        date:    li.dataset.date
+      });
+    }
+    render();
+    syncButtons();
+    persist();
+  }
+
+  // ── Wire pin buttons ────────────────────────────────────────────────────────
   document.querySelectorAll('.pin-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var li = btn.closest('li[data-pin-id]');
       if (!li) return;
-      var id   = li.dataset.pinId;
-      var pins = load();
-      var idx  = pins.findIndex(function (p) { return p.id === id; });
-      if (idx >= 0) {
-        pins.splice(idx, 1);
-      } else {
-        pins.push({
-          id:      id,
-          title:   li.dataset.title,
-          url:     li.dataset.url || null,
-          company: li.dataset.company,
-          date:    li.dataset.date
+      if (ctx && !localStorage.getItem(PAT_KEY)) {
+        // First use on this device: prompt for PAT, then load any existing pins
+        var pat = getPAT();
+        if (!pat) return;
+        ghFetch().then(function (result) {
+          if (result) { cache = result.pins; fileSha = result.sha; syncButtons(); render(); }
+          togglePin(li);
         });
+        return;
       }
-      save(pins);
-      syncButtons();
-      render();
+      togglePin(li);
     });
   });
 
+  // ── Drag-to-reorder ─────────────────────────────────────────────────────────
   function initDrag() {
     var list    = document.getElementById('pinned-list');
     var dragged = null;
@@ -1357,17 +1538,28 @@
       item.addEventListener('drop', function (e) {
         e.preventDefault();
         if (!dragged || item === dragged) return;
-        var pins = load();
-        pins.splice(+item.dataset.idx, 0, pins.splice(+dragged.dataset.idx, 1)[0]);
-        save(pins);
+        cache.splice(+item.dataset.idx, 0, cache.splice(+dragged.dataset.idx, 1)[0]);
         render();
         syncButtons();
+        persist();
       });
     });
   }
 
-  render();
-  syncButtons();
+  // ── Init ────────────────────────────────────────────────────────────────────
+  async function init() {
+    if (ctx && localStorage.getItem(PAT_KEY)) {
+      var result = await ghFetch();
+      if (result) { cache = result.pins; fileSha = result.sha; }
+    } else if (!ctx) {
+      cache = lsLoad();
+    }
+    // ctx present but no PAT yet: start empty; load fires on first pin click
+    syncButtons();
+    render();
+  }
+
+  init();
 })();
 
   </script>
