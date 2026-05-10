@@ -907,7 +907,7 @@ _PINNING_JS = """\
     if (!url) return false;
     var body = {
       message: 'pins: update',
-      content: toB64(JSON.stringify(pins, null, 2) + '\n'),
+      content: toB64(JSON.stringify(pins, null, 2) + '\\n'),
       branch:  'main'
     };
     if (sha) body.sha = sha;
