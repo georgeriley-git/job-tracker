@@ -549,6 +549,11 @@ _CSS = """
       color: #5b21b6;
       flex: 1;
     }
+    #pin-status {
+      font-size: .72rem;
+      color: #7c3aed;
+      padding-right: 4px;
+    }
     .pinned-badge {
       font-size: .7rem;
       font-weight: 700;
@@ -718,8 +723,9 @@ _JS_TEMPLATE = """\
     var pat = localStorage.getItem('nj_gh_pat');
     if (!pat) {
       pat = prompt(
-        'Enter a GitHub Personal Access Token with the "workflow" scope.\\n' +
-        'It will be saved in this browser only (localStorage).'
+        'Enter a GitHub Personal Access Token with "repo" scope.\\n' +
+        'Required for workflow dispatch and pinned.json sync.\\n' +
+        'Saved in this browser only.'
       );
       if (pat && pat.trim()) localStorage.setItem('nj_gh_pat', pat.trim());
     }
@@ -826,70 +832,191 @@ _JS_TEMPLATE = """\
 
 _PINNING_JS = """\
 (function () {
-  var STORE = 'nj_pinned_v1';
+  var PAT_KEY = 'nj_gh_pat';
+  var LS_KEY  = 'nj_pinned_v1';  // localStorage fallback (non-GitHub-Pages)
 
-  function load() {
-    try { return JSON.parse(localStorage.getItem(STORE) || '[]'); }
-    catch (_) { return []; }
+  var cache   = [];    // in-memory pin list
+  var fileSha = null;  // SHA of pinned.json, required for GitHub API updates
+
+  // ── GitHub context ──────────────────────────────────────────────────────────
+  function githubCtx() {
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    if (!m) return null;
+    var parts = location.pathname.replace(/^\//, '').split('/');
+    return parts[0] ? { owner: m[1], repo: parts[0] } : null;
+  }
+  var ctx = githubCtx();
+
+  function apiUrl() {
+    return ctx
+      ? 'https://api.github.com/repos/' + ctx.owner + '/' + ctx.repo + '/contents/pinned.json'
+      : null;
   }
 
-  function save(pins) { localStorage.setItem(STORE, JSON.stringify(pins)); }
+  function ghHeaders() {
+    return {
+      'Authorization': 'Bearer ' + localStorage.getItem(PAT_KEY),
+      'Accept': 'application/vnd.github+json'
+    };
+  }
 
+  function getPAT() {
+    var pat = localStorage.getItem(PAT_KEY);
+    if (!pat) {
+      pat = prompt(
+        'Enter a GitHub Personal Access Token with "repo" scope.\n' +
+        'Required for workflow dispatch and pinned.json sync.\n' +
+        'Saved in this browser only.'
+      );
+      if (pat && pat.trim()) localStorage.setItem(PAT_KEY, pat.trim());
+    }
+    return pat ? pat.trim() : null;
+  }
+
+  // ── Base-64 helpers (UTF-8 safe) ────────────────────────────────────────────
+  function toB64(str) {
+    var bytes = new TextEncoder().encode(str);
+    return btoa(Array.from(bytes, function (b) { return String.fromCharCode(b); }).join(''));
+  }
+  function fromB64(b64) {
+    var bytes = atob(b64.replace(/\s/g, '')).split('').map(function (c) { return c.charCodeAt(0); });
+    return new TextDecoder().decode(new Uint8Array(bytes));
+  }
+
+  // ── GitHub API ──────────────────────────────────────────────────────────────
+  async function ghFetch() {
+    var url = apiUrl();
+    if (!url || !localStorage.getItem(PAT_KEY)) return null;
+    try {
+      var r = await fetch(url, { headers: ghHeaders() });
+      if (r.status === 404) return { pins: [], sha: null };
+      if (r.status === 401 || r.status === 403) {
+        localStorage.removeItem(PAT_KEY);
+        setStatus('PAT invalid — click a pin to re-enter');
+        return null;
+      }
+      if (!r.ok) return null;
+      var d    = await r.json();
+      var pins = JSON.parse(fromB64(d.content));
+      return { pins: Array.isArray(pins) ? pins : [], sha: d.sha };
+    } catch (_) { return null; }
+  }
+
+  async function ghWrite(pins, sha) {
+    var url = apiUrl();
+    if (!url) return false;
+    var body = {
+      message: 'pins: update',
+      content: toB64(JSON.stringify(pins, null, 2) + '\n'),
+      branch:  'main'
+    };
+    if (sha) body.sha = sha;
+    var doFetch = function (b) {
+      return fetch(url, {
+        method:  'PUT',
+        headers: Object.assign({}, ghHeaders(), { 'Content-Type': 'application/json' }),
+        body:    JSON.stringify(b)
+      });
+    };
+    try {
+      var r = await doFetch(body);
+      if (r.status === 409) {
+        // Stale SHA — re-fetch and retry once
+        var fresh = await ghFetch();
+        if (!fresh) return false;
+        fileSha  = fresh.sha;
+        body.sha = fresh.sha;
+        r = await doFetch(body);
+      }
+      if (!r.ok) return false;
+      var d = await r.json();
+      if (d.content && d.content.sha) fileSha = d.content.sha;
+      return true;
+    } catch (_) { return false; }
+  }
+
+  // ── localStorage fallback ───────────────────────────────────────────────────
+  function lsLoad() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+    catch (_) { return []; }
+  }
+  function lsSave(pins) { localStorage.setItem(LS_KEY, JSON.stringify(pins)); }
+
+  // ── Persist (GitHub or localStorage) ───────────────────────────────────────
+  async function persist() {
+    if (ctx) {
+      setStatus('Saving…');
+      var ok = await ghWrite(cache, fileSha);
+      if (ok) {
+        setStatus('');
+      } else {
+        setStatus('Save failed — check PAT scope');
+        setTimeout(function () { setStatus(''); }, 5000);
+      }
+    } else {
+      lsSave(cache);
+    }
+  }
+
+  // ── Status indicator ────────────────────────────────────────────────────────
+  function setStatus(msg) {
+    var el = document.getElementById('pin-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = msg ? '' : 'none';
+  }
+
+  // ── HTML helpers ────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s || '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-
   function fmtDate(s) {
     var p = s.split('-');
     if (p.length < 3) return s;
     var mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return +p[2] + ' ' + (mon[+p[1] - 1] || '') + ' ' + p[0];
+    return +p[2] + ' ' + (mon[+p[1] - 1] || '') + ' ' + p[0];
   }
 
+  // ── Render pinned section ───────────────────────────────────────────────────
   function render() {
-    var pins    = load();
     var section = document.getElementById('pinned-section');
     var list    = document.getElementById('pinned-list');
     var badge   = document.getElementById('pinned-count');
     if (!section) return;
-
-    if (!pins.length) { section.style.display = 'none'; return; }
+    if (!cache.length) { section.style.display = 'none'; return; }
     section.style.display = '';
-    badge.textContent = pins.length;
-
-    list.innerHTML = pins.map(function (p, i) {
-      var titleHtml = p.url
+    badge.textContent = cache.length;
+    list.innerHTML = cache.map(function (p, i) {
+      var t = p.url
         ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" class="pinned-job-title">' + esc(p.title) + '</a>'
         : '<span class="pinned-job-title">' + esc(p.title) + '</span>';
       return (
         '<div class="pinned-item" draggable="true" data-idx="' + i + '">' +
         '<span class="drag-handle" aria-hidden="true">⋮⋮</span>' +
-        '<div class="pinned-info">' + titleHtml +
+        '<div class="pinned-info">' + t +
         '<div class="pinned-meta">' + esc(p.company) + ' &middot; ' + fmtDate(p.date) + '</div>' +
         '</div>' +
         '<button class="unpin-btn" data-idx="' + i + '" title="Unpin (applied)" aria-label="Unpin">×</button>' +
         '</div>'
       );
     }).join('');
-
     list.querySelectorAll('.unpin-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var pins = load();
-        pins.splice(+btn.dataset.idx, 1);
-        save(pins);
-        syncButtons();
+        cache.splice(+btn.dataset.idx, 1);
         render();
+        syncButtons();
+        persist();
       });
     });
-
     initDrag();
   }
 
+  // ── Sync pin-button states ──────────────────────────────────────────────────
   function syncButtons() {
     var set = {};
-    load().forEach(function (p) { set[p.id] = true; });
+    cache.forEach(function (p) { set[p.id] = true; });
     document.querySelectorAll('li[data-pin-id]').forEach(function (li) {
       var btn = li.querySelector('.pin-btn');
       if (!btn) return;
@@ -899,30 +1026,46 @@ _PINNING_JS = """\
     });
   }
 
+  // ── Toggle a pin ────────────────────────────────────────────────────────────
+  function togglePin(li) {
+    var id  = li.dataset.pinId;
+    var idx = cache.findIndex(function (p) { return p.id === id; });
+    if (idx >= 0) {
+      cache.splice(idx, 1);
+    } else {
+      cache.push({
+        id:      id,
+        title:   li.dataset.title,
+        url:     li.dataset.url || null,
+        company: li.dataset.company,
+        date:    li.dataset.date
+      });
+    }
+    render();
+    syncButtons();
+    persist();
+  }
+
+  // ── Wire pin buttons ────────────────────────────────────────────────────────
   document.querySelectorAll('.pin-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var li = btn.closest('li[data-pin-id]');
       if (!li) return;
-      var id   = li.dataset.pinId;
-      var pins = load();
-      var idx  = pins.findIndex(function (p) { return p.id === id; });
-      if (idx >= 0) {
-        pins.splice(idx, 1);
-      } else {
-        pins.push({
-          id:      id,
-          title:   li.dataset.title,
-          url:     li.dataset.url || null,
-          company: li.dataset.company,
-          date:    li.dataset.date
+      if (ctx && !localStorage.getItem(PAT_KEY)) {
+        // First use on this device: prompt for PAT, then load any existing pins
+        var pat = getPAT();
+        if (!pat) return;
+        ghFetch().then(function (result) {
+          if (result) { cache = result.pins; fileSha = result.sha; syncButtons(); render(); }
+          togglePin(li);
         });
+        return;
       }
-      save(pins);
-      syncButtons();
-      render();
+      togglePin(li);
     });
   });
 
+  // ── Drag-to-reorder ─────────────────────────────────────────────────────────
   function initDrag() {
     var list    = document.getElementById('pinned-list');
     var dragged = null;
@@ -948,17 +1091,28 @@ _PINNING_JS = """\
       item.addEventListener('drop', function (e) {
         e.preventDefault();
         if (!dragged || item === dragged) return;
-        var pins = load();
-        pins.splice(+item.dataset.idx, 0, pins.splice(+dragged.dataset.idx, 1)[0]);
-        save(pins);
+        cache.splice(+item.dataset.idx, 0, cache.splice(+dragged.dataset.idx, 1)[0]);
         render();
         syncButtons();
+        persist();
       });
     });
   }
 
-  render();
-  syncButtons();
+  // ── Init ────────────────────────────────────────────────────────────────────
+  async function init() {
+    if (ctx && localStorage.getItem(PAT_KEY)) {
+      var result = await ghFetch();
+      if (result) { cache = result.pins; fileSha = result.sha; }
+    } else if (!ctx) {
+      cache = lsLoad();
+    }
+    // ctx present but no PAT yet: start empty; load fires on first pin click
+    syncButtons();
+    render();
+  }
+
+  init();
 })();
 """
 
@@ -1109,6 +1263,7 @@ def generate_dashboard():
         '    <section id="pinned-section" style="display:none">\n'
         '      <div class="pinned-header">\n'
         '        <span class="pinned-title">\U0001f4cc Pinned</span>\n'
+        '        <span id="pin-status" style="display:none"></span>\n'
         '        <span id="pinned-count" class="pinned-badge">0</span>\n'
         '      </div>\n'
         '      <div id="pinned-list"></div>\n'
