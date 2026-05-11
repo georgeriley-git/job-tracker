@@ -2,8 +2,9 @@ name: Scrape Jobs
 
 on:
   schedule:
-    - cron: '0 23 * * *'   # 23:00 UTC daily (7:00pm EDT / Toronto)
-  workflow_dispatch:         # manual trigger from the GitHub Actions tab or the dashboard Run button
+    - cron: '0 23 * * *'  # 7pm EDT
+  workflow_dispatch:  # manual trigger from the GitHub Actions tab or the dashboard Run button
+  # updated: 2026-05-11
 
 jobs:
   scrape:
