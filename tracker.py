@@ -152,7 +152,7 @@ def _snap_dt(p: Path) -> datetime:
 
 
 def _all_snapshots() -> list[Path]:
-    return sorted(SNAPSHOTS_DIR.glob("*.json"), key=_snap_dt)
+    return sorted(SNAPSHOTS_DIR.glob("[0-9]*.json"), key=_snap_dt)
 
 
 # ── job normalisation helpers ─────────────────────────────────────────────────
@@ -324,6 +324,17 @@ def _zero_result_portals() -> list[tuple[str, str]]:
         (company, portal_urls.get(company, "#"))
         for company, jobs in latest.items()
         if len(jobs) == 0
+    )
+
+
+def _write_snapshot_index() -> None:
+    """Writes snapshots/index.json consumed by the browser-side dashboard."""
+    snaps   = _all_snapshots()
+    portals = [{"name": name, "url": url} for name, url, _ in load_portals()]
+    (SNAPSHOTS_DIR / "index.json").write_text(
+        json.dumps({"snapshots": [p.name for p in snaps], "portals": portals},
+                   indent=2, ensure_ascii=False),
+        encoding="utf-8",
     )
 
 
@@ -1264,14 +1275,14 @@ def scrape():
         json.dumps(snapshot, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    generate_dashboard()
+    _write_snapshot_index()
 
     existing_dates = sorted({_snap_date(p) for p in _all_snapshots()})
     if len(existing_dates) == 1:
         print(f"\nBaseline saved ({snapshot_path}).")
-        print("Open dashboard.html — new jobs will appear from tomorrow.")
+        print("Open dashboard.html on GitHub Pages — new jobs will appear from tomorrow.")
     else:
-        print(f"\nSnapshot saved. Dashboard updated -> open dashboard.html")
+        print(f"\nSnapshot saved ({snapshot_path.name}). Open dashboard.html on GitHub Pages.")
 
 
 # ── display (terminal) ────────────────────────────────────────────────────────

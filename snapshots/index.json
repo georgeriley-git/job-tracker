@@ -1,0 +1,104 @@
+{
+  "snapshots": [
+    "2026-05-02_0000.json",
+    "2026-05-02_1032.json",
+    "2026-05-03_1115.json",
+    "2026-05-04_0954.json",
+    "2026-05-04_1321.json",
+    "2026-05-05_1031.json",
+    "2026-05-05_1452.json",
+    "2026-05-05_2023.json",
+    "2026-05-06_1633.json",
+    "2026-05-06_1717.json",
+    "2026-05-06_2027.json",
+    "2026-05-06_2210.json",
+    "2026-05-07_1452.json",
+    "2026-05-07_1801.json",
+    "2026-05-07_1849.json",
+    "2026-05-07_2242.json",
+    "2026-05-08_1407.json",
+    "2026-05-08_1654.json",
+    "2026-05-08_1807.json",
+    "2026-05-08_2215.json",
+    "2026-05-09_1515.json",
+    "2026-05-09_1550.json",
+    "2026-05-09_2058.json",
+    "2026-05-09_2109.json",
+    "2026-05-10_0737.json",
+    "2026-05-11_1049.json"
+  ],
+  "portals": [
+    {
+      "name": "Calian",
+      "url": "https://corporatecareers.calian.com/search"
+    },
+    {
+      "name": "Kinectrics",
+      "url": "https://careers.kinectrics.com/go/View-all-Jobs/2625717/?q=&q2=&alertId=&locationsearch=&title=&date=&location=toronto#searchresults"
+    },
+    {
+      "name": "OPG",
+      "url": "https://jobs.opg.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=&geolocation="
+    },
+    {
+      "name": "CNL",
+      "url": "https://tre.tbe.taleo.net/tre01/ats/careers/v2/searchResults?org=CNLLTD&cws=37&act=sort&sortColumn=3&sortOrder=D"
+    },
+    {
+      "name": "AtkinsRealis",
+      "url": "https://slihrms.wd3.myworkdayjobs.com/en-US/Careers?source=careers_site&locations=3a25a348ed440164d119c2efbf00a25e&locations=04345744d12501b0fb91abc3664028e9&locations=bcf52bf7594c10a2750f3bc208ab67c0&locations=bcf52bf7594c10a2750e86b2037b679c&locations=bcf52bf7594c10a2750e1cc43b2366b1&locations=bcf52bf7594c10a275143bf0237b6e17"
+    },
+    {
+      "name": "CNSC",
+      "url": "https://clients.njoyn.com/CL4/xweb/xweb.asp?NTKN=c&clid=71850&page=joblisting"
+    },
+    {
+      "name": "Aecon",
+      "url": "https://jobs.aecon.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=&geolocation=&optionsFacetsDD_title=&optionsFacetsDD_state=ON&optionsFacetsDD_department="
+    },
+    {
+      "name": "BWXT",
+      "url": "https://careers.bwxt.com/search/?q=&q2=&alertId=&locationsearch=&title=&location=on&date=#searchresults"
+    },
+    {
+      "name": "NWMO",
+      "url": "https://careers.nwmo.ca/vacancies.html"
+    },
+    {
+      "name": "GE Vernova",
+      "url": "https://careers.gevernova.com/jobs?page_number=2&filter%5Bstate%5D%5B0%5D=Ontario&filter%5Bcountry%5D%5B0%5D=Canada"
+    },
+    {
+      "name": "Westinghouse",
+      "url": "https://careers.westinghousenuclear.com/search/?searchby=location&createNewAlert=false&q=&locationsearch=Canada&geolocation=&optionsFacetsDD_country=&optionsFacetsDD_city=&optionsFacetsDD_title=&optionsFacetsDD_brand=&optionsFacetsDD_location="
+    },
+    {
+      "name": "AECL",
+      "url": "https://www.aecl.ca/about-aecl/employment-with-aecl/"
+    },
+    {
+      "name": "Laurentis Energy",
+      "url": "https://laurentisenergy.bamboohr.com/careers"
+    },
+    {
+      "name": "Bruce Power",
+      "url": "https://brucepower.wd3.myworkdayjobs.com/BrucePower/"
+    },
+    {
+      "name": "Cameco",
+      "url": "https://career17.sapsf.com/career?company=Cameco&career%5fns=job%5flisting%5fsummary&navBarLevel=JOB%5fSEARCH&_s.crb=k170olwRXF8FggkX2yeyhzpNLNnZIT6H3KfUFkYX4UI%3d"
+    },
+    {
+      "name": "Hatch",
+      "url": "https://jobs.hatch.com/search/?q=&locationsearch=mississauga"
+    },
+    {
+      "name": "Black & McDonald",
+      "url": "https://black-mcdonald-limited.breezy.hr/?&country=Canada#positions"
+    },
+    {
+      "name": "WSP",
+      "url": "https://www.wsp.com/en-ca/careers/job-opportunities?query=nuclear&country=CA"
+    }
+  ]
+}
