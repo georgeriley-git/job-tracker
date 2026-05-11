@@ -549,11 +549,6 @@ _CSS = """
       color: #5b21b6;
       flex: 1;
     }
-    #pin-status {
-      font-size: .72rem;
-      color: #7c3aed;
-      padding-right: 4px;
-    }
     .pinned-badge {
       font-size: .7rem;
       font-weight: 700;
@@ -723,8 +718,8 @@ _JS_TEMPLATE = """\
     var pat = localStorage.getItem('nj_gh_pat');
     if (!pat) {
       pat = prompt(
-        'Enter a GitHub Personal Access Token with "repo" scope.\\n' +
-        'Required for workflow dispatch and pinned.json sync.\\n' +
+        'Enter a GitHub Personal Access Token with "workflow" scope.\\n' +
+        'Required to trigger the scrape workflow.\\n' +
         'Saved in this browser only.'
       );
       if (pat && pat.trim()) localStorage.setItem('nj_gh_pat', pat.trim());
@@ -832,158 +827,14 @@ _JS_TEMPLATE = """\
 
 _PINNING_JS = """\
 (function () {
-  var PAT_KEY = 'nj_gh_pat';
-  var LS_KEY  = 'nj_pinned_v1';  // localStorage fallback (non-GitHub-Pages)
+  var LS_KEY = 'nj_pinned_v1';
+  var cache  = [];
 
-  var cache   = [];    // in-memory pin list
-  var fileSha = null;  // SHA of pinned.json, required for GitHub API updates
-
-  // ── GitHub context ──────────────────────────────────────────────────────────
-  function githubCtx() {
-    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
-    if (!m) return null;
-    var parts = location.pathname.replace(/^\//, '').split('/');
-    return parts[0] ? { owner: m[1], repo: parts[0] } : null;
-  }
-  var ctx = githubCtx();
-
-  function apiUrl() {
-    return ctx
-      ? 'https://api.github.com/repos/' + ctx.owner + '/' + ctx.repo + '/contents/pinned.json'
-      : null;
-  }
-
-  function ghHeaders() {
-    return {
-      'Authorization': 'Bearer ' + localStorage.getItem(PAT_KEY),
-      'Accept': 'application/vnd.github+json'
-    };
-  }
-
-  function getPAT() {
-    var pat = localStorage.getItem(PAT_KEY);
-    if (!pat) {
-      pat = prompt(
-        'Enter a GitHub Personal Access Token with "repo" scope.\n' +
-        'Required for workflow dispatch and pinned.json sync.\n' +
-        'Saved in this browser only.'
-      );
-      if (pat && pat.trim()) localStorage.setItem(PAT_KEY, pat.trim());
-    }
-    return pat ? pat.trim() : null;
-  }
-
-  // ── Base-64 helpers (UTF-8 safe) ────────────────────────────────────────────
-  function toB64(str) {
-    var bytes = new TextEncoder().encode(str);
-    return btoa(Array.from(bytes, function (b) { return String.fromCharCode(b); }).join(''));
-  }
-  function fromB64(b64) {
-    var bytes = atob(b64.replace(/\s/g, '')).split('').map(function (c) { return c.charCodeAt(0); });
-    return new TextDecoder().decode(new Uint8Array(bytes));
-  }
-
-  // ── GitHub API ──────────────────────────────────────────────────────────────
-  async function ghFetch() {
-    var url = apiUrl();
-    if (!url || !localStorage.getItem(PAT_KEY)) return null;
-    try {
-      var r = await fetch(url, { headers: ghHeaders() });
-      if (r.status === 404) return { pins: [], sha: null };
-      if (r.status === 401 || r.status === 403) {
-        localStorage.removeItem(PAT_KEY);
-        setStatus('PAT invalid — click a pin to re-enter');
-        return null;
-      }
-      if (!r.ok) return null;
-      var d    = await r.json();
-      var pins = JSON.parse(fromB64(d.content));
-      return { pins: Array.isArray(pins) ? pins : [], sha: d.sha };
-    } catch (_) { return null; }
-  }
-
-  async function ghWrite(pins, sha) {
-    var url = apiUrl();
-    if (!url) return false;
-    var body = {
-      message: 'pins: update',
-      content: toB64(JSON.stringify(pins, null, 2) + '\\n'),
-      branch:  'main'
-    };
-    if (sha) body.sha = sha;
-    console.log('[pins] PUT', url, '| sha:', sha, '| pins:', pins.length, '| body keys:', Object.keys(body));
-    var doFetch = function (b) {
-      return fetch(url, {
-        method:  'PUT',
-        headers: Object.assign({}, ghHeaders(), { 'Content-Type': 'application/json' }),
-        body:    JSON.stringify(b)
-      });
-    };
-    try {
-      var r = await doFetch(body);
-      console.log('[pins] response status:', r.status);
-      if (r.status === 409) {
-        // Stale SHA — re-fetch and retry once
-        var fresh = await ghFetch();
-        if (!fresh) return false;
-        fileSha  = fresh.sha;
-        body.sha = fresh.sha;
-        r = await doFetch(body);
-        console.log('[pins] retry status:', r.status);
-      }
-      if (!r.ok) {
-        var errBody = await r.text();
-        console.error('[pins] write failed', r.status, errBody);
-        if (r.status === 401 || r.status === 403) {
-          localStorage.removeItem(PAT_KEY);
-          setStatus('PAT needs "repo" scope — click a pin to re-enter');
-        }
-        return false;
-      }
-      var d = await r.json();
-      if (d.content && d.content.sha) fileSha = d.content.sha;
-      console.log('[pins] write OK, new sha:', fileSha);
-      return true;
-    } catch (err) {
-      console.error('[pins] write exception:', err);
-      return false;
-    }
-  }
-
-  // ── localStorage fallback ───────────────────────────────────────────────────
   function lsLoad() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
     catch (_) { return []; }
   }
-  function lsSave(pins) { localStorage.setItem(LS_KEY, JSON.stringify(pins)); }
-
-  // ── Persist (GitHub or localStorage) ───────────────────────────────────────
-  async function persist() {
-    if (ctx) {
-      console.log('[pins] persist → GitHub |', cache.length, 'pins | sha:', fileSha);
-      setStatus('Saving…');
-      var ok = await ghWrite(cache, fileSha);
-      if (ok) {
-        setStatus('');
-      } else {
-        if (!document.getElementById('pin-status').textContent) {
-          setStatus('Save failed — check PAT scope');
-          setTimeout(function () { setStatus(''); }, 5000);
-        }
-      }
-    } else {
-      console.log('[pins] persist → localStorage |', cache.length, 'pins');
-      lsSave(cache);
-    }
-  }
-
-  // ── Status indicator ────────────────────────────────────────────────────────
-  function setStatus(msg) {
-    var el = document.getElementById('pin-status');
-    if (!el) return;
-    el.textContent = msg;
-    el.style.display = msg ? '' : 'none';
-  }
+  function persist() { localStorage.setItem(LS_KEY, JSON.stringify(cache)); }
 
   // ── HTML helpers ────────────────────────────────────────────────────────────
   function esc(s) {
@@ -1070,16 +921,6 @@ _PINNING_JS = """\
     btn.addEventListener('click', function () {
       var li = btn.closest('li[data-pin-id]');
       if (!li) return;
-      if (ctx && !localStorage.getItem(PAT_KEY)) {
-        // First use on this device: prompt for PAT, then load any existing pins
-        var pat = getPAT();
-        if (!pat) return;
-        ghFetch().then(function (result) {
-          if (result) { cache = result.pins; fileSha = result.sha; syncButtons(); render(); }
-          togglePin(li);
-        });
-        return;
-      }
       togglePin(li);
     });
   });
@@ -1118,25 +959,9 @@ _PINNING_JS = """\
     });
   }
 
-  // ── Init ────────────────────────────────────────────────────────────────────
-  async function init() {
-    console.log('[pins] init | ctx:', ctx ? ctx.owner + '/' + ctx.repo : 'none (local file)');
-    if (ctx && localStorage.getItem(PAT_KEY)) {
-      console.log('[pins] fetching pinned.json from GitHub…');
-      var result = await ghFetch();
-      console.log('[pins] ghFetch result:', JSON.stringify(result && { pins: result.pins.length, sha: result.sha }));
-      if (result) { cache = result.pins; fileSha = result.sha; }
-    } else if (ctx) {
-      console.log('[pins] GitHub Pages detected but no PAT stored — will load on first pin click');
-    } else {
-      cache = lsLoad();
-      console.log('[pins] local file — loaded', cache.length, 'pins from localStorage');
-    }
-    syncButtons();
-    render();
-  }
-
-  init();
+  cache = lsLoad();
+  syncButtons();
+  render();
 })();
 """
 
@@ -1287,7 +1112,6 @@ def generate_dashboard():
         '    <section id="pinned-section" style="display:none">\n'
         '      <div class="pinned-header">\n'
         '        <span class="pinned-title">\U0001f4cc Pinned</span>\n'
-        '        <span id="pin-status" style="display:none"></span>\n'
         '        <span id="pinned-count" class="pinned-badge">0</span>\n'
         '      </div>\n'
         '      <div id="pinned-list"></div>\n'
