@@ -333,6 +333,41 @@
       .pin-btn { opacity: .55; }
       .drag-handle { display: none; }
     }
+
+    /* ── Zero-results collapsible ── */
+    .zero-results { margin-bottom: 16px; }
+    .zero-results > summary {
+      cursor: pointer;
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .74rem;
+      color: #94a3b8;
+      user-select: none;
+      padding: 2px 0;
+    }
+    .zero-results > summary::-webkit-details-marker { display: none; }
+    .zero-results > summary::marker { content: none; }
+    .zero-results > summary:focus-visible { outline: 1px dotted #cbd5e1; border-radius: 2px; }
+    .zr-arrow {
+      font-size: .6rem;
+      display: inline-block;
+      transition: transform .15s;
+      color: #cbd5e1;
+    }
+    .zero-results[open] > summary .zr-arrow { transform: rotate(90deg); }
+    .zr-body {
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .zr-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 3px 18px; }
+    .zr-list li { font-size: .77rem; }
+    .zr-list a { color: #94a3b8; text-decoration: none; }
+    .zr-list a:hover { color: #64748b; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -348,6 +383,13 @@
       </div>
       <div id="pinned-list"></div>
     </section>
+    <details class="zero-results">
+      <summary><span class="zr-arrow">&#9658;</span> Sites returning 0 jobs (2)</summary>
+      <div class="zr-body"><ul class="zr-list">
+          <li><a href="https://www.aecl.ca/about-aecl/employment-with-aecl/" target="_blank" rel="noopener">AECL</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Government of Canada</a></li>
+      </ul></div>
+    </details>
     <div class="controls">
       <select id="company-filter" class="filter-select"><option value="">All companies</option></select>
       <button id="run-btn" class="run-btn">&#9654; Run Scraper</button>
@@ -1174,7 +1216,7 @@
   var progressPanel = document.getElementById('progress-panel');
   var progressText  = document.getElementById('progress-text');
   var spinner       = document.getElementById('spinner');
-  var PORTAL_COUNT  = 19;
+  var PORTAL_COUNT  = 18;
 
   // ── Company filter ──
   var filterSelect = document.getElementById('company-filter');

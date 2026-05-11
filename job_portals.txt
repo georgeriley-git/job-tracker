@@ -21,5 +21,3 @@ Cameco              | https://career17.sapsf.com/career?company=Cameco&career%5f
 Hatch               | https://jobs.hatch.com/search/?q=&locationsearch=mississauga
 Black & McDonald    | https://black-mcdonald-limited.breezy.hr/?&country=Canada#positions
 WSP                 | https://www.wsp.com/en-ca/careers/job-opportunities?query=nuclear&country=CA | [class*='result'] h2
-# TEST ENTRY — remove after verifying intraday highlighting
-Government of Canada | file:///C:/Users/George%20Riley/job-tracker/test_portal.html | [class*="job-title"]

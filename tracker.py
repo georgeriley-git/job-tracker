@@ -313,6 +313,20 @@ def _scrape_regressions() -> list[str]:
     )
 
 
+def _zero_result_portals() -> list[tuple[str, str]]:
+    """Returns (name, url) for every portal with 0 results in the latest snapshot."""
+    snaps = _all_snapshots()
+    if not snaps:
+        return []
+    latest = json.loads(snaps[-1].read_text(encoding="utf-8"))
+    portal_urls = {name: url for name, url, _ in load_portals()}
+    return sorted(
+        (company, portal_urls.get(company, "#"))
+        for company, jobs in latest.items()
+        if len(jobs) == 0
+    )
+
+
 # ── dashboard HTML ────────────────────────────────────────────────────────────
 
 def _esc(s: str) -> str:
@@ -651,6 +665,41 @@ _CSS = """
       .pin-btn { opacity: .55; }
       .drag-handle { display: none; }
     }
+
+    /* ── Zero-results collapsible ── */
+    .zero-results { margin-bottom: 16px; }
+    .zero-results > summary {
+      cursor: pointer;
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .74rem;
+      color: #94a3b8;
+      user-select: none;
+      padding: 2px 0;
+    }
+    .zero-results > summary::-webkit-details-marker { display: none; }
+    .zero-results > summary::marker { content: none; }
+    .zero-results > summary:focus-visible { outline: 1px dotted #cbd5e1; border-radius: 2px; }
+    .zr-arrow {
+      font-size: .6rem;
+      display: inline-block;
+      transition: transform .15s;
+      color: #cbd5e1;
+    }
+    .zero-results[open] > summary .zr-arrow { transform: rotate(90deg); }
+    .zr-body {
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .zr-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 3px 18px; }
+    .zr-list li { font-size: .77rem; }
+    .zr-list a { color: #94a3b8; text-decoration: none; }
+    .zr-list a:hover { color: #64748b; text-decoration: underline; }
 """
 
 
@@ -1079,6 +1128,26 @@ def generate_dashboard():
     else:
         warning_block = ""
 
+    zero_portals = _zero_result_portals()
+    if zero_portals:
+        items_html = "\n".join(
+            f'          <li><a href="{_esc(url)}" target="_blank" rel="noopener">{_esc(name)}</a></li>'
+            for name, url in zero_portals
+        )
+        zero_results_html = (
+            f'    <details class="zero-results">\n'
+            f'      <summary>'
+            f'<span class="zr-arrow">&#9658;</span>'
+            f' Sites returning 0 jobs ({len(zero_portals)})'
+            f'</summary>\n'
+            f'      <div class="zr-body"><ul class="zr-list">\n'
+            f'{items_html}\n'
+            f'      </ul></div>\n'
+            f'    </details>\n'
+        )
+    else:
+        zero_results_html = ""
+
     js = _JS_TEMPLATE.replace("__N_PORTALS__", str(n_portals))
 
     controls_html = (
@@ -1116,6 +1185,7 @@ def generate_dashboard():
         '      </div>\n'
         '      <div id="pinned-list"></div>\n'
         '    </section>\n'
+        f'{zero_results_html}'
         f'{controls_html}'
         f'{warning_block}'
         f'{content}\n'
