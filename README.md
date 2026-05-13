@@ -61,7 +61,7 @@ python tracker.py scrape     # capture today's snapshot
 python tracker.py display    # show new jobs since last run
 ```
 
-You can run `scrape` and then immediately `display`, but you won't see anything new until the next day's scrape.
+You can run `scrape` and then immediately `display` — new jobs will appear as soon as you have at least two snapshots.
 
 ---
 
@@ -84,7 +84,7 @@ You can run `scrape` and then immediately `display`, but you won't see anything 
 
 ## Snapshots
 
-Saved in `snapshots/YYYY-MM-DD.json`. Running `scrape` twice on the same day is a no-op. To re-scrape today, delete `snapshots/YYYY-MM-DD.json` and run again.
+Saved in `snapshots/YYYY-MM-DD_HHMM.json`. Each run creates its own timestamped file, so multiple scrapes on the same day each get their own snapshot. To re-scrape within the same minute, delete that file and run again.
 
 Example snapshot:
 

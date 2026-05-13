@@ -259,16 +259,10 @@ def _daily_new() -> list[tuple[str, dict[str, list[dict]]]]:
     if len(snaps) < 2:
         return []
 
-    by_date: dict[str, Path] = {}
-    for s in snaps:
-        by_date[_snap_date(s)] = s
-
-    dates = sorted(by_date)
     result = []
-
-    for i in range(len(dates) - 1, 0, -1):
-        cur  = json.loads(by_date[dates[i]].read_text(encoding="utf-8"))
-        prev = json.loads(by_date[dates[i - 1]].read_text(encoding="utf-8"))
+    for i in range(len(snaps) - 1, 0, -1):
+        cur  = json.loads(snaps[i].read_text(encoding="utf-8"))
+        prev = json.loads(snaps[i - 1].read_text(encoding="utf-8"))
 
         new: dict[str, list[dict]] = {}
         for company, jobs in cur.items():
@@ -278,24 +272,8 @@ def _daily_new() -> list[tuple[str, dict[str, list[dict]]]]:
                 new[company] = added
 
         if new:
-            result.append((dates[i], new))
+            result.append((_snap_date(snaps[i]), new))
 
-    return result
-
-
-def _intraday_new(date_str: str) -> set[tuple[str, str]]:
-    """Jobs that appear in the last snapshot of date_str but not in the first."""
-    snaps = [s for s in _all_snapshots() if _snap_date(s) == date_str]
-    if len(snaps) < 2:
-        return set()
-    first = json.loads(snaps[0].read_text(encoding="utf-8"))
-    last  = json.loads(snaps[-1].read_text(encoding="utf-8"))
-    result: set[tuple[str, str]] = set()
-    for company, jobs in last.items():
-        first_keys = {_job_key(j) for j in first.get(company, [])}
-        for j in jobs:
-            if _job_key(j) not in first_keys:
-                result.add((company, _job_key(j)))
     return result
 
 
@@ -1041,20 +1019,19 @@ def generate_dashboard():
 
     n_portals = len(load_portals())
     n_snaps   = len(snaps)
-    today_str    = _date.today().isoformat()
-    result       = _daily_new()
-    intraday_new = _intraday_new(today_str)
+    today_str = _date.today().isoformat()
+    result    = _daily_new()
 
     if not result:
         content = (
             '    <div class="empty">\n'
             '      <h2>Baseline captured — no comparisons yet</h2>\n'
-            '      <p>New jobs will appear here once a second day of snapshots has been collected.</p>\n'
+            '      <p>New jobs will appear here once a second snapshot has been collected.</p>\n'
             '    </div>'
         )
     else:
         sections = []
-        for date_str, companies in result:
+        for idx, (date_str, companies) in enumerate(result):
             dt         = datetime.strptime(date_str, "%Y-%m-%d")
             date_label = f"{dt.day} {dt.strftime('%B %Y')}"
             total      = sum(len(j) for j in companies.values())
@@ -1079,7 +1056,7 @@ def generate_dashboard():
                         f'<span class="job-loc">{_esc(loc)}</span>'
                         if loc else ""
                     )
-                    is_new   = date_str == today_str and (company, _job_key(job)) in intraday_new
+                    is_new   = (idx == 0)
                     li_class = ' class="job-new"' if is_new else ""
                     pin_id   = _esc(f"{company}|{j['title']}".lower())
                     data_attrs = (
@@ -1277,10 +1254,10 @@ def scrape():
 
     _write_snapshot_index()
 
-    existing_dates = sorted({_snap_date(p) for p in _all_snapshots()})
-    if len(existing_dates) == 1:
+    existing_snaps = _all_snapshots()
+    if len(existing_snaps) == 1:
         print(f"\nBaseline saved ({snapshot_path}).")
-        print("Open dashboard.html on GitHub Pages — new jobs will appear from tomorrow.")
+        print("Run again any time — new jobs will appear after your second scrape.")
     else:
         print(f"\nSnapshot saved ({snapshot_path.name}). Open dashboard.html on GitHub Pages.")
 
@@ -1290,7 +1267,7 @@ def scrape():
 def display():
     result = _daily_new()
     if not result:
-        print("No new jobs yet — need snapshots from at least 2 different days.")
+        print("No new jobs yet — need at least 2 snapshots.")
         return
     for date_str, companies in result:
         dt = datetime.strptime(date_str, "%Y-%m-%d")

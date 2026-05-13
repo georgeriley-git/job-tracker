@@ -69,7 +69,7 @@ FAKE_DATES = sorted({d for d, _, _ in FAKE_ADDITIONS})
 if "--undo" in sys.argv:
     removed = []
     for d in FAKE_DATES:
-        for p in SNAPSHOTS_DIR.glob(f"{d}_fake.json"):
+        for p in SNAPSHOTS_DIR.glob(f"{d}_0000_fake.json"):
             p.unlink()
             removed.append(p.name)
     if removed:
@@ -109,7 +109,7 @@ for date in FAKE_DATES:
                 existing_titles.add(title.lower())
         running[company].sort(key=lambda j: j["title"].lower())
 
-    out = SNAPSHOTS_DIR / f"{date}_fake.json"
+    out = SNAPSHOTS_DIR / f"{date}_0000_fake.json"
     out.write_text(json.dumps(running, indent=2, ensure_ascii=False), encoding="utf-8")
     total = sum(len(v) for v in running.values())
     print(f"  {out.name}  ({total} total jobs)")
