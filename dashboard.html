@@ -463,15 +463,15 @@ function dailyNew(snapMap, byDate, diffDates) {
 
 function intradayNew(snapMap, todayNames) {
   if (todayNames.length < 2) return {};
-  var first = snapMap[todayNames[0]];
-  var last  = snapMap[todayNames[todayNames.length - 1]];
-  if (!first || !last) return {};
+  var prev = snapMap[todayNames[todayNames.length - 2]];
+  var last = snapMap[todayNames[todayNames.length - 1]];
+  if (!prev || !last) return {};
   var result = {};
   Object.keys(last).forEach(function (company) {
-    var firstKeys = {};
-    (first[company] || []).forEach(function (j) { firstKeys[jobKey(j)] = true; });
+    var prevKeys = {};
+    (prev[company] || []).forEach(function (j) { prevKeys[jobKey(j)] = true; });
     (last[company] || []).forEach(function (j) {
-      if (!firstKeys[jobKey(j)]) result[company + '\x00' + jobKey(j)] = true;
+      if (!prevKeys[jobKey(j)]) result[company + '\x00' + jobKey(j)] = true;
     });
   });
   return result;
@@ -747,8 +747,27 @@ function initRunButton(portalCount) {
       var estimated = Math.min(Math.floor(elapsed / 25), portalCount);
       if (run.status === 'completed') {
         if (run.conclusion === 'success') {
+          setStatus('Waiting for GitHub Pages to update…', true);
+          var deployed = false;
+          for (var attempt = 0; attempt < 30 && !deployed; attempt++) {
+            await sleep(5000);
+            try {
+              var ir = await fetch('snapshots/index.json?_=' + Date.now(), { cache: 'no-store' });
+              var idxData = await ir.json();
+              var snapNames = idxData.snapshots || [];
+              if (snapNames.length > 0) {
+                var newest = snapNames[snapNames.length - 1];
+                var mo = newest.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})/);
+                if (mo) {
+                  var snapTime = Date.UTC(+mo[1], +mo[2] - 1, +mo[3], +mo[4], +mo[5]);
+                  if (snapTime >= startTime - 30000) { deployed = true; }
+                }
+              }
+            } catch (_) {}
+          }
           setStatus('Done! Refreshing…', false);
-          await sleep(1500); location.reload();
+          await sleep(500);
+          location.reload();
         } else {
           setStatus('Workflow ended: ' + run.conclusion + '. Check the Actions tab for details.', false);
           runBtn.disabled = false;
