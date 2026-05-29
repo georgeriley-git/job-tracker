@@ -69,7 +69,8 @@
     "2026-05-27_1359.json",
     "2026-05-27_2009.json",
     "2026-05-28_1206.json",
-    "2026-05-28_1842.json"
+    "2026-05-28_1842.json",
+    "2026-05-29_1100.json"
   ],
   "portals": [
     {
@@ -143,6 +144,18 @@
     {
       "name": "WSP",
       "url": "https://www.wsp.com/en-ca/careers/job-opportunities?query=nuclear&country=CA"
+    },
+    {
+      "name": "Canadian Strategic Missions Corporation",
+      "url": "https://strategicmissions.ca/careers"
+    },
+    {
+      "name": "Morson Edge",
+      "url": "https://www.morson.com/jobs?sort_by=recency&city[canada]=canada&city[markham]=markham&city[mississauga]=mississauga&city[north-york]=north-york&city[ontario,-canada]=ontario%2C-canada"
+    },
+    {
+      "name": "Kiewit",
+      "url": "https://kiewitcareers.kiewit.com/go/Kiewit_Interns-Entry-Level/8156300/?q=&q2=&alertId=&locationsearch=&title=&shifttype=&department=&location=on#searchresults"
     }
   ]
 }
