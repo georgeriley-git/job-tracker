@@ -307,8 +307,13 @@ def _zero_result_portals() -> list[tuple[str, str]]:
 
 def _write_snapshot_index() -> None:
     """Writes snapshots/index.json consumed by the browser-side dashboard."""
-    snaps   = _all_snapshots()
-    portals = [{"name": name, "url": url} for name, url, _ in load_portals()]
+    snaps = _all_snapshots()
+    seen_names: set[str] = set()
+    portals: list[dict] = []
+    for name, url, _ in load_portals():
+        if name not in seen_names:
+            seen_names.add(name)
+            portals.append({"name": name, "url": url})
     (SNAPSHOTS_DIR / "index.json").write_text(
         json.dumps({"snapshots": [p.name for p in snaps], "portals": portals},
                    indent=2, ensure_ascii=False),
@@ -1237,12 +1242,22 @@ def scrape():
                     if k not in seen:
                         seen.add(k)
                         unique.append(j)
-                unique.sort(key=lambda j: _job_title(j).lower())
-                snapshot[name] = unique
-                print(f"{len(unique)} job(s)")
+
+                if name in snapshot:
+                    # Merge with existing results (multiple URLs for the same company)
+                    existing_keys = {_job_key(j) for j in snapshot[name]}
+                    added = [j for j in unique if _job_key(j) not in existing_keys]
+                    snapshot[name].extend(added)
+                    snapshot[name].sort(key=lambda j: _job_title(j).lower())
+                    print(f"{len(unique)} job(s) → {len(snapshot[name])} total")
+                else:
+                    unique.sort(key=lambda j: _job_title(j).lower())
+                    snapshot[name] = unique
+                    print(f"{len(unique)} job(s)")
             except Exception as exc:
                 print(f"ERROR — {exc}")
-                snapshot[name] = []
+                if name not in snapshot:
+                    snapshot[name] = []
 
             page.wait_for_timeout(random.randint(1_000, 3_000))
 
