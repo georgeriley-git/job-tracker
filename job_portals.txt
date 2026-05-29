@@ -22,6 +22,6 @@ Hatch               | https://jobs.hatch.com/search/?q=&locationsearch=mississau
 Black & McDonald    | https://black-mcdonald-limited.breezy.hr/?&country=Canada#positions
 WSP                 | https://www.wsp.com/en-ca/careers/job-opportunities?query=nuclear&country=CA | [class*='result'] h2
 Canadian Strategic Missions Corporation | https://strategicmissions.ca/careers | p[class*='Job-module'][class*='__title']
-Morson Edge         | https://www.morson.com/jobs?sort_by=recency&city[canada]=canada&city[markham]=markham&city[mississauga]=mississauga&city[north-york]=north-york&city[ontario,-canada]=ontario%2C-canada | h3.u-leading-tight
+Morson Edge         | https://www.morson.com/jobs?sort_by=recency&city[canada]=canada&city[markham]=markham&city[mississauga]=mississauga&city[north-york]=north-york&city[ontario,-canada]=ontario%2C-canada | div.card.job-card
 Kiewit              | https://kiewitcareers.kiewit.com/go/Kiewit_Interns-Entry-Level/8156300/?q=&q2=&alertId=&locationsearch=&title=&shifttype=&department=&location=on#searchresults
 Kiewit              | https://kiewitcareers.kiewit.com/go/Kiewit_Professional/8156700/?q=&q2=&alertId=&locationsearch=&title=&shifttype=&department=&location=on#searchresults

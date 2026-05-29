@@ -128,8 +128,13 @@ _EXTRACT_JS = """
         return null;
     }
 
+    function getTitle(el) {
+        const h = el.querySelector('h1,h2,h3,h4,h5,h6');
+        return ((h || el).innerText || '').replace(/\\s+/g, ' ').trim();
+    }
+
     return elements.map(el => ({
-        title: (el.innerText || '').replace(/\\s+/g, ' ').trim(),
+        title: getTitle(el),
         url:   getUrl(el),
         loc:   getLocation(el)
     }));
