@@ -194,11 +194,21 @@ def load_portals():
         if not line or line.startswith("#"):
             continue
         parts = [p.strip() for p in line.split("|")]
-        name = parts[0]
-        url  = parts[1] if len(parts) > 1 else parts[0]
-        sel  = parts[2] if len(parts) > 2 else None
-        entries.append((name, url, sel))
+        name       = parts[0]
+        url        = parts[1] if len(parts) > 1 else parts[0]
+        sel        = parts[2] if len(parts) > 2 else None
+        loc_filter = parts[3] if len(parts) > 3 else None
+        entries.append((name, url, sel, loc_filter))
     return entries
+
+
+def _loc_matches(loc: str | None, pattern: str) -> bool:
+    """True if location contains the pattern as a comma-delimited token (e.g. ', ON,')."""
+    if not loc:
+        return False
+    up = loc.upper()
+    pat = pattern.upper()
+    return f", {pat}," in up or f", {pat} " in up or pat in up.split(",")[0].split()
 
 
 def _extract_from_selector(page, selector: str) -> list[dict]:
@@ -302,7 +312,7 @@ def _zero_result_portals() -> list[tuple[str, str]]:
     if not snaps:
         return []
     latest = json.loads(snaps[-1].read_text(encoding="utf-8"))
-    portal_urls = {name: url for name, url, _ in load_portals()}
+    portal_urls = {name: url for name, url, *_ in load_portals()}
     return sorted(
         (company, portal_urls.get(company, "#"))
         for company, jobs in latest.items()
@@ -315,7 +325,7 @@ def _write_snapshot_index() -> None:
     snaps = _all_snapshots()
     seen_names: set[str] = set()
     portals: list[dict] = []
-    for name, url, _ in load_portals():
+    for name, url, *_ in load_portals():
         if name not in seen_names:
             seen_names.add(name)
             portals.append({"name": name, "url": url})
@@ -1235,7 +1245,7 @@ def scrape():
         )
         page = ctx.new_page()
 
-        for name, url, selector in portals:
+        for name, url, selector, loc_filter in portals:
             print(f"  {name} ... ", end="", flush=True)
             try:
                 jobs = extract_jobs(page, url, selector)
@@ -1247,6 +1257,11 @@ def scrape():
                     if k not in seen:
                         seen.add(k)
                         unique.append(j)
+
+                if loc_filter:
+                    before = len(unique)
+                    unique = [j for j in unique if _loc_matches(j.get("location"), loc_filter)]
+                    print(f"({before} total, {before - len(unique)} filtered by loc={loc_filter!r}) ", end="", flush=True)
 
                 if name in snapshot:
                     # Merge with existing results (multiple URLs for the same company)
